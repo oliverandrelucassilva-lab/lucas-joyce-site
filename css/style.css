@@ -409,20 +409,6 @@ body:not(.locked) .lock-screen { display: none; }
   background: #fff;
   box-shadow: 0 24px 60px rgba(92, 36, 54, 0.25);
 }
-.hero-photo-card-back {
-  position: absolute;
-  inset: 0;
-  transform: rotate(-8deg) translate(-18px, 14px);
-  z-index: 0;
-  opacity: 0.9;
-}
-.hero-photo-card-back img {
-  height: 460px;
-}
-.hero-photo-wrap .hero-photo-card:not(.hero-photo-card-back) {
-  position: relative;
-  z-index: 1;
-}
 .hero-photo-card img {
   width: 100%;
   height: 460px;
@@ -859,6 +845,9 @@ body:not(.locked) .lock-screen { display: none; }
   flex-wrap: wrap;
   margin-bottom: 16px;
 }
+.organizer-actions[hidden] {
+  display: none;
+}
 
 .add-section {
   background: var(--pink-50);
@@ -881,6 +870,9 @@ body:not(.locked) .lock-screen { display: none; }
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+.add-photo-preview-wrap[hidden] {
+  display: none;
 }
 .add-photo-preview-wrap img {
   width: 80px;
@@ -950,6 +942,67 @@ body:not(.locked) .lock-screen { display: none; }
 
 /* GALLERY */
 .gallery-section { padding: 90px 0; }
+.album-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+.album-nav[hidden] {
+  display: none;
+}
+.album-nav-btn {
+  background: #fff;
+  border: 2px solid var(--pink-300);
+  color: var(--rose-900);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-size: 1.4rem;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.album-nav-btn:hover {
+  background: var(--pink-500);
+  color: #fff;
+}
+.album-position {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--pink-700);
+  min-width: 130px;
+  text-align: center;
+}
+.album-viewport {
+  position: relative;
+}
+.album-title-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  background: rgba(255, 250, 243, 0.92);
+  border-radius: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+  z-index: 5;
+}
+.album-title-overlay.show {
+  opacity: 1;
+}
+.album-title-overlay span {
+  font-family: var(--font-serif);
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  color: var(--rose-900);
+}
 .gallery-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));

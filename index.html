@@ -73,19 +73,12 @@
     </div>
 
     <div class="hero-photo-wrap">
-      <span class="hero-photo-badge">📍 Primeira viagem juntos</span>
-      <div class="hero-photo-card hero-photo-card-back">
+      <span class="hero-photo-badge">💛 nosso momento favorito</span>
+      <div class="hero-photo-card">
         <img src="images/janeiro-1.jpg" alt="Manhã preguiçosa">
         <div class="hero-photo-caption">
           <strong>Manhã preguiçosa</strong>
           <span>18 de Janeiro de 2026</span>
-        </div>
-      </div>
-      <div class="hero-photo-card">
-        <img src="images/sergipe-6.jpg" alt="Lucas e Joyce em Sergipe">
-        <div class="hero-photo-caption">
-          <strong>Sergipe, SE</strong>
-          <span>02 a 05 de Abril de 2026 · Semana Santa</span>
         </div>
       </div>
       <span class="hero-photo-sparkle">✨</span>
@@ -113,10 +106,10 @@
       <img src="images/hamburgueria-1.jpg" alt="Lucas e Joyce">
     </div>
     <div class="love-letter-text">
-      <p class="love-letter-kicker">💌 para você, Joyce</p>
+      <p class="love-letter-kicker">💌 para você, Minha Oncinha!</p>
       <h2 class="section-title">Uma declaração de amor</h2>
       <p>
-        Joyce, eu te amo demais. Cada dia ao seu lado me mostra o quanto eu sou sortudo por
+        Minha oncinha, eu te amo demais. Cada dia ao seu lado me mostra o quanto eu sou sortudo por
         ter você na minha vida. Você é meu amor, minha melhor amiga, meu porto seguro —
         a pessoa que eu escolho todos os dias e vou continuar escolhendo.
       </p>
@@ -268,9 +261,18 @@
 <section class="gallery-section">
   <div class="container">
     <h2 class="section-title">Álbum de Fotos</h2>
-    <p class="section-text">Cada foto guardada nos momentos acima aparece aqui também.</p>
+    <p class="section-text">Cada momento vira um álbum. Navegue entre eles 👇</p>
 
-    <div class="gallery-grid" id="gallery-grid"></div>
+    <div class="album-nav">
+      <button type="button" id="album-prev" class="album-nav-btn" aria-label="Álbum anterior">&#8249;</button>
+      <span id="album-position" class="album-position"></span>
+      <button type="button" id="album-next" class="album-nav-btn" aria-label="Próximo álbum">&#8250;</button>
+    </div>
+
+    <div class="album-viewport">
+      <div id="album-title-overlay" class="album-title-overlay"></div>
+      <div class="gallery-grid" id="gallery-grid"></div>
+    </div>
 
     <div class="empty-state" id="gallery-empty" hidden>
       <p>As fotos que vocês adicionarem nos momentos vão aparecer aqui. 📸</p>
