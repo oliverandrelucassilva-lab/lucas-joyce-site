@@ -334,9 +334,10 @@ function getMemoryVideos(mem) {
   return Array.isArray(mem.videos) ? mem.videos : [];
 }
 
-/* ---------- Galeria em álbuns (um por momento) ---------- */
+/* ---------- Galeria em álbuns (pastas por momento) ---------- */
 let currentAlbumIndex = 0;
 let albumOverlayTimeout = null;
+let albumDetailOpen = false;
 
 function getAlbums() {
   return loadMemories()
@@ -348,24 +349,72 @@ function getAlbums() {
 function renderGallery(options) {
   const animate = options && options.animate;
   const albums = getAlbums();
-  const grid = document.getElementById('gallery-grid');
   const empty = document.getElementById('gallery-empty');
-  const nav = document.querySelector('.album-nav');
-  const position = document.getElementById('album-position');
-  const overlay = document.getElementById('album-title-overlay');
-  grid.innerHTML = '';
+  const foldersGrid = document.getElementById('album-folders-grid');
+  const detailView = document.getElementById('album-detail-view');
+  const subtitle = document.getElementById('gallery-subtitle');
 
   if (albums.length === 0) {
     empty.hidden = false;
-    nav.hidden = true;
-    overlay.classList.remove('show');
+    foldersGrid.hidden = true;
+    detailView.hidden = true;
+    subtitle.hidden = true;
     return;
   }
   empty.hidden = true;
-  nav.hidden = false;
+  subtitle.hidden = false;
 
   if (currentAlbumIndex >= albums.length) currentAlbumIndex = albums.length - 1;
   if (currentAlbumIndex < 0) currentAlbumIndex = 0;
+
+  renderAlbumFolders(albums);
+
+  if (albumDetailOpen) {
+    foldersGrid.hidden = true;
+    detailView.hidden = false;
+    renderAlbumDetail(albums, animate);
+  } else {
+    foldersGrid.hidden = false;
+    detailView.hidden = true;
+  }
+}
+
+function renderAlbumFolders(albums) {
+  const foldersGrid = document.getElementById('album-folders-grid');
+  foldersGrid.innerHTML = '';
+
+  albums.forEach((album, index) => {
+    const photos = getMemoryPhotos(album);
+    const videos = getMemoryVideos(album);
+    const total = photos.length + videos.length;
+
+    const card = document.createElement('div');
+    card.className = 'album-folder-card';
+    card.innerHTML = `
+      ${photos[0]
+        ? `<img src="${photos[0]}" alt="${escapeHtml(album.title)}">`
+        : `<div class="album-folder-placeholder">🎬</div>`}
+      <span class="album-folder-count">${total} ${total === 1 ? 'item' : 'itens'}</span>
+      <div class="album-folder-label">
+        <strong>${escapeHtml(album.title)}</strong>
+        <span>${formatDatePtBr(album.date)}</span>
+      </div>
+    `;
+    card.addEventListener('click', () => {
+      currentAlbumIndex = index;
+      albumDetailOpen = true;
+      renderGallery({ animate: true });
+      document.getElementById('album-detail-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    foldersGrid.appendChild(card);
+  });
+}
+
+function renderAlbumDetail(albums, animate) {
+  const grid = document.getElementById('gallery-grid');
+  const position = document.getElementById('album-position');
+  const overlay = document.getElementById('album-title-overlay');
+  grid.innerHTML = '';
 
   const album = albums[currentAlbumIndex];
   position.textContent = `Álbum ${currentAlbumIndex + 1} de ${albums.length}`;
@@ -397,6 +446,7 @@ function renderGallery(options) {
 function setupAlbumNav() {
   const prevBtn = document.getElementById('album-prev');
   const nextBtn = document.getElementById('album-next');
+  const backBtn = document.getElementById('album-back-btn');
 
   prevBtn.addEventListener('click', () => {
     const albums = getAlbums();
@@ -410,6 +460,12 @@ function setupAlbumNav() {
     if (albums.length === 0) return;
     currentAlbumIndex = (currentAlbumIndex + 1) % albums.length;
     renderGallery({ animate: true });
+  });
+
+  backBtn.addEventListener('click', () => {
+    albumDetailOpen = false;
+    renderGallery();
+    document.getElementById('album-folders-grid').scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 }
 

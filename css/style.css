@@ -950,6 +950,79 @@ body:not(.locked) .lock-screen { display: none; }
 
 /* GALLERY */
 .gallery-section { padding: 90px 0; }
+.album-folders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 20px;
+}
+.album-folders-grid[hidden] {
+  display: none;
+}
+.album-folder-card {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 18px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(90, 30, 50, 0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background: var(--pink-100);
+}
+.album-folder-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 14px 28px rgba(90, 30, 50, 0.22);
+}
+.album-folder-card img,
+.album-folder-card video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.album-folder-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+}
+.album-folder-count {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(20, 8, 14, 0.55);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+.album-folder-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 30px 12px 12px;
+  background: linear-gradient(to top, rgba(20, 8, 14, 0.8), transparent);
+  color: #fff;
+}
+.album-folder-label strong {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  line-height: 1.25;
+}
+.album-folder-label span {
+  font-size: 0.7rem;
+  opacity: 0.85;
+}
+.album-detail-view[hidden] {
+  display: none;
+}
+.album-back-btn {
+  margin-bottom: 24px;
+}
 .album-nav {
   display: flex;
   align-items: center;

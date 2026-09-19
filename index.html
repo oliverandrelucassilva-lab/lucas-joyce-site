@@ -261,17 +261,23 @@
 <section class="gallery-section">
   <div class="container">
     <h2 class="section-title">Álbum de Fotos</h2>
-    <p class="section-text">Cada momento vira um álbum. Navegue entre eles 👇</p>
+    <p class="section-text" id="gallery-subtitle">Todos os álbuns, um por momento. Clique pra abrir 👇</p>
 
-    <div class="album-nav">
-      <button type="button" id="album-prev" class="album-nav-btn" aria-label="Álbum anterior">&#8249;</button>
-      <span id="album-position" class="album-position"></span>
-      <button type="button" id="album-next" class="album-nav-btn" aria-label="Próximo álbum">&#8250;</button>
-    </div>
+    <div id="album-folders-grid" class="album-folders-grid"></div>
 
-    <div class="album-viewport">
-      <div id="album-title-overlay" class="album-title-overlay"></div>
-      <div class="gallery-grid" id="gallery-grid"></div>
+    <div id="album-detail-view" class="album-detail-view" hidden>
+      <button type="button" id="album-back-btn" class="btn-secondary album-back-btn">← Todos os álbuns</button>
+
+      <div class="album-nav">
+        <button type="button" id="album-prev" class="album-nav-btn" aria-label="Álbum anterior">&#8249;</button>
+        <span id="album-position" class="album-position"></span>
+        <button type="button" id="album-next" class="album-nav-btn" aria-label="Próximo álbum">&#8250;</button>
+      </div>
+
+      <div class="album-viewport">
+        <div id="album-title-overlay" class="album-title-overlay"></div>
+        <div class="gallery-grid" id="gallery-grid"></div>
+      </div>
     </div>
 
     <div class="empty-state" id="gallery-empty" hidden>
