@@ -155,11 +155,79 @@ body:not(.locked) .lock-screen { display: none; }
   overflow: hidden;
 }
 
+.hero-blobs {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.5;
+}
+.blob.b1 {
+  width: 340px;
+  height: 340px;
+  top: -80px;
+  left: -100px;
+  background: var(--gold);
+  opacity: 0.25;
+}
+.blob.b2 {
+  width: 300px;
+  height: 300px;
+  bottom: -100px;
+  right: -60px;
+  background: #ffb7c5;
+  opacity: 0.4;
+}
+.blob.b3 {
+  width: 220px;
+  height: 220px;
+  top: 30%;
+  right: 10%;
+  background: #c9a7ff;
+  opacity: 0.2;
+}
+.blob.b4 {
+  width: 260px;
+  height: 260px;
+  bottom: 5%;
+  left: 8%;
+  background: #a7d8ff;
+  opacity: 0.2;
+}
+
 .hero-hearts-deco {
   position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 0;
+}
+.deco-critter {
+  position: absolute;
+  font-size: 2.2rem;
+  animation: critterBob 4s ease-in-out infinite;
+  filter: drop-shadow(0 6px 10px rgba(92, 36, 54, 0.15));
+}
+.deco-critter.c1 { top: 87%; left: 8%; font-size: 2.6rem; animation-delay: 0.2s; }
+.deco-critter.c2 { top: 40%; right: 4%; font-size: 2.6rem; animation-delay: 1s; transform: scaleX(-1); }
+.deco-critter.c3 { top: 89%; left: 22%; font-size: 1.2rem; opacity: 0.6; animation-delay: 0.6s; }
+.deco-critter.c4 { top: 93%; left: 27%; font-size: 1rem; opacity: 0.5; animation-delay: 1.4s; }
+
+@keyframes critterBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.deco-critter.c2 {
+  animation-name: critterBobFlip;
+}
+@keyframes critterBobFlip {
+  0%, 100% { transform: scaleX(-1) translateY(0); }
+  50% { transform: scaleX(-1) translateY(-10px); }
 }
 .deco-heart {
   position: absolute;
