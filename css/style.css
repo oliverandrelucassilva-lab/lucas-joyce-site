@@ -172,11 +172,51 @@ body:not(.locked) .lock-screen { display: none; }
   color: var(--gold);
   font-style: italic;
 }
-.hero-subtitle {
-  font-size: 1.1rem;
+.hero-timers {
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  flex-wrap: wrap;
+  margin-bottom: 36px;
+}
+.timer-block {
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(217, 72, 104, 0.2);
+  border-radius: 18px;
+  padding: 18px 22px;
+}
+.timer-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
   color: var(--pink-700);
-  margin-bottom: 32px;
-  font-weight: 500;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+.timer-numbers {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+.timer-numbers .unit {
+  background: #fff;
+  border-radius: 12px;
+  padding: 10px 12px;
+  min-width: 60px;
+  box-shadow: 0 4px 10px rgba(90, 30, 50, 0.1);
+}
+.timer-numbers .unit .num {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  color: var(--rose-900);
+  display: block;
+  line-height: 1.1;
+}
+.timer-numbers .unit .lbl {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #a97887;
 }
 .btn-scroll {
   display: inline-block;

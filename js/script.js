@@ -67,35 +67,43 @@ function formatDatePtBr(dateStr) {
   return `${d}/${m}/${y}`;
 }
 
-function daysBetween(dateA, dateB) {
-  const msPerDay = 1000 * 60 * 60 * 24;
-  return Math.floor((dateB - dateA) / msPerDay);
-}
+/* ---------- Temporizadores ao vivo "juntos há" / "namorando há" ---------- */
+const liveTimerIntervals = {};
 
-/* ---------- Contadores "juntos há" / "namorando há" ---------- */
-function daysCountText(prefix, dateStr) {
-  const start = new Date(dateStr + 'T00:00:00');
-  const now = new Date();
-  const days = daysBetween(start, now);
-  if (days < 0) return null;
-  const years = Math.floor(days / 365);
-  const remDays = days % 365;
-  let text = `${prefix} há ${days} dias`;
-  if (years > 0) {
-    text += ` (${years} ano${years > 1 ? 's' : ''} e ${remDays} dia${remDays !== 1 ? 's' : ''})`;
+function setupLiveTimer(containerId, dateStr) {
+  const container = document.getElementById(containerId);
+  const target = new Date(dateStr + 'T00:00:00').getTime();
+
+  if (liveTimerIntervals[containerId]) clearInterval(liveTimerIntervals[containerId]);
+
+  function tick() {
+    const diff = Date.now() - target;
+
+    if (diff < 0) {
+      container.innerHTML = `<p class="timer-pending">essa data ainda vai chegar!</p>`;
+      return;
+    }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((diff / (1000 * 60)) % 60);
+    const seconds = Math.floor((diff / 1000) % 60);
+
+    container.innerHTML = `
+      <div class="unit"><span class="num">${days}</span><span class="lbl">dias</span></div>
+      <div class="unit"><span class="num">${hours}</span><span class="lbl">horas</span></div>
+      <div class="unit"><span class="num">${minutes}</span><span class="lbl">min</span></div>
+      <div class="unit"><span class="num">${seconds}</span><span class="lbl">seg</span></div>
+    `;
   }
-  return text;
+
+  tick();
+  liveTimerIntervals[containerId] = setInterval(tick, 1000);
 }
 
 function updateTogetherCounter() {
-  const togetherEl = document.getElementById('together-counter');
-  const datingEl = document.getElementById('dating-counter');
-
-  const togetherText = daysCountText('juntos', loadTogetherDate());
-  togetherEl.textContent = togetherText || 'essa data ainda vai chegar!';
-
-  const datingText = daysCountText('namorando', loadDatingDate());
-  datingEl.textContent = datingText || 'essa data ainda vai chegar!';
+  setupLiveTimer('together-timer', loadTogetherDate());
+  setupLiveTimer('dating-timer', loadDatingDate());
 }
 
 /* ---------- Countdown para próxima data futura ---------- */
