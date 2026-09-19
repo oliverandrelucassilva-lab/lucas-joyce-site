@@ -838,6 +838,14 @@ body:not(.locked) .lock-screen { display: none; }
   font-size: 0.75rem;
   cursor: pointer;
 }
+.organizer-map-link {
+  font-size: 0.75rem;
+  color: var(--pink-700);
+  text-decoration: none;
+}
+.organizer-map-link:hover {
+  text-decoration: underline;
+}
 .organizer-actions {
   display: flex;
   gap: 14px;

@@ -129,6 +129,15 @@ function saveMemories(memories) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(memories));
 }
 
+function getStorageUsageMb() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY) || '';
+    return (new Blob([raw]).size / (1024 * 1024)).toFixed(1);
+  } catch (e) {
+    return null;
+  }
+}
+
 function loadTogetherDate() {
   return localStorage.getItem(TOGETHER_DATE_KEY) || DEFAULT_TOGETHER_DATE;
 }
@@ -590,8 +599,8 @@ function setupTitleEdit() {
 
 /* ---------- Organizador em massa de fotos e vídeos ---------- */
 
-// Leitor minimo de EXIF (DateTimeOriginal) para JPEGs, sem depender de bibliotecas externas
-function parseJpegExifDate(buffer) {
+// Leitor minimo de EXIF (data + GPS) para JPEGs, sem depender de bibliotecas externas
+function parseJpegExifData(buffer) {
   try {
     const view = new DataView(buffer);
     if (view.getUint16(0) !== 0xFFD8) return null;
@@ -605,8 +614,8 @@ function parseJpegExifDate(buffer) {
 
       const segLength = view.getUint16(offset + 2);
       if (marker === 0xFFE1) {
-        const date = parseExifApp1(view, offset + 4);
-        if (date) return date;
+        const result = parseExifApp1(view, offset + 4);
+        if (result) return result;
       }
       offset += 2 + segLength;
     }
@@ -614,6 +623,40 @@ function parseJpegExifDate(buffer) {
     // arquivo mal formado, ignora
   }
   return null;
+}
+
+function getRational(view, off, little) {
+  const num = view.getUint32(off, little);
+  const den = view.getUint32(off + 4, little);
+  return den === 0 ? 0 : num / den;
+}
+
+function parseGpsIfd(view, tiffStart, gpsIfdAddr, little) {
+  const get16 = (off) => view.getUint16(off, little);
+  const get32 = (off) => view.getUint32(off, little);
+  const numEntries = get16(gpsIfdAddr);
+  let latRef, lonRef, lat, lon;
+
+  for (let i = 0; i < numEntries; i++) {
+    const entryAddr = gpsIfdAddr + 2 + i * 12;
+    const tag = get16(entryAddr);
+    if (tag === 1 || tag === 3) {
+      const ref = String.fromCharCode(view.getUint8(entryAddr + 8));
+      if (tag === 1) latRef = ref; else lonRef = ref;
+    } else if (tag === 2 || tag === 4) {
+      const dataOffset = tiffStart + get32(entryAddr + 8);
+      const deg = getRational(view, dataOffset, little);
+      const min = getRational(view, dataOffset + 8, little);
+      const sec = getRational(view, dataOffset + 16, little);
+      const val = deg + min / 60 + sec / 3600;
+      if (tag === 2) lat = val; else lon = val;
+    }
+  }
+
+  if (lat == null || lon == null) return null;
+  if (latRef === 'S') lat = -lat;
+  if (lonRef === 'W') lon = -lon;
+  return { lat, lon };
 }
 
 function parseExifApp1(view, start) {
@@ -626,32 +669,46 @@ function parseExifApp1(view, start) {
   const ifd0Addr = tiffStart + get32(tiffStart + 4);
   const numEntries0 = get16(ifd0Addr);
   let exifIfdOffset = null;
+  let gpsIfdOffset = null;
   for (let i = 0; i < numEntries0; i++) {
     const entryAddr = ifd0Addr + 2 + i * 12;
-    if (get16(entryAddr) === 0x8769) {
-      exifIfdOffset = get32(entryAddr + 8);
-      break;
-    }
-  }
-  if (exifIfdOffset == null) return null;
-
-  const exifIfdAddr = tiffStart + exifIfdOffset;
-  const numEntriesExif = get16(exifIfdAddr);
-  for (let i = 0; i < numEntriesExif; i++) {
-    const entryAddr = exifIfdAddr + 2 + i * 12;
     const tag = get16(entryAddr);
-    if (tag === 0x9003 || tag === 0x9004) {
-      const count = get32(entryAddr + 4);
-      const strOffset = count <= 4 ? entryAddr + 8 : tiffStart + get32(entryAddr + 8);
-      let str = '';
-      for (let j = 0; j < count - 1; j++) {
-        str += String.fromCharCode(view.getUint8(strOffset + j));
-      }
-      const m = str.match(/(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2}):(\d{2})/);
-      if (m) return new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]);
+    if (tag === 0x8769) exifIfdOffset = get32(entryAddr + 8);
+    if (tag === 0x8825) gpsIfdOffset = get32(entryAddr + 8);
+  }
+
+  const result = { date: null, lat: null, lon: null };
+
+  if (gpsIfdOffset != null) {
+    try {
+      const gps = parseGpsIfd(view, tiffStart, tiffStart + gpsIfdOffset, little);
+      if (gps) { result.lat = gps.lat; result.lon = gps.lon; }
+    } catch (e) {
+      // sem GPS legivel, segue sem
     }
   }
-  return null;
+
+  if (exifIfdOffset != null) {
+    const exifIfdAddr = tiffStart + exifIfdOffset;
+    const numEntriesExif = get16(exifIfdAddr);
+    for (let i = 0; i < numEntriesExif; i++) {
+      const entryAddr = exifIfdAddr + 2 + i * 12;
+      const tag = get16(entryAddr);
+      if (tag === 0x9003 || tag === 0x9004) {
+        const count = get32(entryAddr + 4);
+        const strOffset = count <= 4 ? entryAddr + 8 : tiffStart + get32(entryAddr + 8);
+        let str = '';
+        for (let j = 0; j < count - 1; j++) {
+          str += String.fromCharCode(view.getUint8(strOffset + j));
+        }
+        const m = str.match(/(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2}):(\d{2})/);
+        if (m) result.date = new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]);
+        break;
+      }
+    }
+  }
+
+  return (result.date || result.lat != null) ? result : null;
 }
 
 function isJpegFile(file) {
@@ -662,15 +719,29 @@ function isHeicFile(file) {
   return /\.(heic|heif)$/i.test(file.name) || file.type === 'image/heic' || file.type === 'image/heif';
 }
 
-function readFileDate(file) {
+function withTimeout(promise, ms) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms)),
+  ]);
+}
+
+function readFileMeta(file) {
   return new Promise((resolve) => {
     if (!isJpegFile(file)) {
-      resolve(new Date(file.lastModified));
+      resolve({ date: new Date(file.lastModified), lat: null, lon: null });
       return;
     }
     const reader = new FileReader();
-    reader.onload = (e) => resolve(parseJpegExifDate(e.target.result) || new Date(file.lastModified));
-    reader.onerror = () => resolve(new Date(file.lastModified));
+    reader.onload = (e) => {
+      const exif = parseJpegExifData(e.target.result);
+      resolve({
+        date: (exif && exif.date) || new Date(file.lastModified),
+        lat: exif ? exif.lat : null,
+        lon: exif ? exif.lon : null,
+      });
+    };
+    reader.onerror = () => resolve({ date: new Date(file.lastModified), lat: null, lon: null });
     reader.readAsArrayBuffer(file.slice(0, 131072));
   });
 }
@@ -757,9 +828,14 @@ function setupOrganizer() {
           ? `<div class="organizer-heic-placeholder"><span class="icon">📷</span>HEIC</div>`
           : `<img src="${item.url}" alt="prévia">`;
 
+      const mapLink = (item.lat != null && item.lon != null)
+        ? `<a class="organizer-map-link" href="https://www.google.com/maps?q=${item.lat},${item.lon}" target="_blank" rel="noopener">📍 ver local</a>`
+        : '';
+
       card.innerHTML = `
         ${media}
         <input type="date" value="${toDateInputValue(item.date)}">
+        ${mapLink}
         <button type="button" class="organizer-remove">remover</button>
       `;
 
@@ -807,12 +883,16 @@ function setupOrganizer() {
 
     for (const file of files) {
       const isVideo = file.type.startsWith('video/');
-      const date = await readFileDate(file);
+      const meta = isVideo
+        ? { date: new Date(file.lastModified), lat: null, lon: null }
+        : await readFileMeta(file);
       organizerItems.push({
         id: 'org-' + Math.random().toString(36).slice(2),
         file,
         url: URL.createObjectURL(file),
-        date,
+        date: meta.date,
+        lat: meta.lat,
+        lon: meta.lon,
         isVideo,
       });
     }
@@ -830,10 +910,20 @@ function setupOrganizer() {
   saveBtn.addEventListener('click', async () => {
     if (organizerItems.length === 0) return;
     saveBtn.disabled = true;
-    saveBtn.textContent = 'Organizando...';
+    feedback.hidden = true;
+
+    const totalItems = organizerItems.length;
+    let processed = 0;
+    let skippedVideos = 0;
+    let failedPhotos = 0;
+    let quotaHit = false;
+
+    const updateProgress = () => {
+      saveBtn.textContent = `Organizando... (${processed}/${totalItems})`;
+    };
+    updateProgress();
 
     const memories = loadMemories();
-    let skippedVideos = 0;
 
     const groups = new Map();
     organizerItems.forEach(item => {
@@ -842,6 +932,7 @@ function setupOrganizer() {
       groups.get(key).push(item);
     });
 
+    groupLoop:
     for (const [dateKey, items] of groups) {
       let mem = memories.find(m => m.date === dateKey);
       if (!mem) {
@@ -866,36 +957,37 @@ function setupOrganizer() {
         if (item.isVideo) {
           if (item.file.size > 6 * 1024 * 1024) {
             skippedVideos++;
-            continue;
-          }
-          try {
-            mem.videos.push(await fileToDataUrl(item.file));
-          } catch (e) {
-            skippedVideos++;
+          } else {
+            try {
+              mem.videos.push(await withTimeout(fileToDataUrl(item.file), 20000));
+            } catch (e) {
+              skippedVideos++;
+            }
           }
         } else {
           try {
-            const blob = await convertHeicIfNeeded(item.file);
-            mem.photos.push(await resizeImageToDataUrl(blob, 1600, 0.8));
+            const blob = await withTimeout(convertHeicIfNeeded(item.file), 20000);
+            mem.photos.push(await withTimeout(resizeImageToDataUrl(blob, 1600, 0.8), 20000));
           } catch (e) {
             try {
-              mem.photos.push(await fileToDataUrl(item.file));
+              mem.photos.push(await withTimeout(fileToDataUrl(item.file), 20000));
             } catch (e2) {
-              // não deu pra ler esse arquivo, pula
+              failedPhotos++;
             }
           }
         }
-      }
-    }
 
-    try {
-      saveMemories(memories);
-    } catch (e) {
-      feedback.hidden = false;
-      feedback.textContent = 'Não deu pra salvar tudo — o navegador atingiu o limite de armazenamento. Tente adicionar menos fotos/vídeos por vez.';
-      saveBtn.disabled = false;
-      saveBtn.textContent = 'Organizar e guardar tudo 💾';
-      return;
+        processed++;
+        updateProgress();
+      }
+
+      // salva a cada grupo de data, pra nao perder tudo se o limite do navegador estourar
+      try {
+        saveMemories(memories);
+      } catch (e) {
+        quotaHit = true;
+        break groupLoop;
+      }
     }
 
     organizerItems.forEach(item => URL.revokeObjectURL(item.url));
@@ -903,9 +995,19 @@ function setupOrganizer() {
     renderOrganizerGrid();
 
     feedback.hidden = false;
-    feedback.textContent = skippedVideos > 0
-      ? `Tudo organizado! ${skippedVideos} vídeo(s) grande(s) demais não coube(ram) e não foi(ram) salvo(s).`
-      : 'Tudo organizado e guardado! 💛';
+    const usageMb = getStorageUsageMb();
+    const usageNote = usageMb ? ` (espaço usado: ${usageMb} MB)` : '';
+
+    if (quotaHit) {
+      feedback.textContent = `Salvamos parte das fotos, mas o navegador atingiu o limite de armazenamento antes de terminar.${usageNote} Tente organizar o restante em grupos menores, ou peça pra eu migrar isso pra um banco de dados de verdade.`;
+    } else {
+      const problems = [];
+      if (skippedVideos > 0) problems.push(`${skippedVideos} vídeo(s) grande(s) demais`);
+      if (failedPhotos > 0) problems.push(`${failedPhotos} foto(s) que não deu pra ler`);
+      feedback.textContent = problems.length > 0
+        ? `Organizado! Só não deu pra salvar: ${problems.join(' e ')}.${usageNote}`
+        : `Tudo organizado e guardado! 💛${usageNote}`;
+    }
 
     saveBtn.disabled = false;
     saveBtn.textContent = 'Organizar e guardar tudo 💾';
