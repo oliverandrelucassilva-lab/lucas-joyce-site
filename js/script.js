@@ -53,13 +53,19 @@ const SERGIPE_MEMORIES = [
 
 const SEED_V3_KEY = 'lj-seeded-v3';
 const MILESTONE_MEMORIES = [
-  { id: 'seed-marco-01', title: 'Começamos a conversar', date: '2025-08-13', category: 'marco', description: '' },
+  { id: 'seed-marco-01', title: 'Começamos a conversar', date: '2025-08-13', category: 'marco', description: '', photos: ['images/conversando-1.jpg'] },
   { id: 'seed-marco-02', title: 'Primeiro selinho', date: '2025-09-26', category: 'marco', description: '' },
-  { id: 'seed-marco-03', title: 'Contei pro meu pai', date: '2025-10-26', category: 'marco', description: '' },
-  { id: 'seed-marco-04', title: 'Primeiro date', date: '2025-11-30', category: 'marco', description: '' },
+  { id: 'seed-marco-03', title: 'Contei pro meu pai', date: '2025-10-26', category: 'marco', description: '', photos: ['images/pai-1.jpg', 'images/pai-2.jpg', 'images/pai-3.jpg', 'images/pai-4.jpg'] },
+  { id: 'seed-marco-04', title: 'Primeiro date', date: '2025-11-30', category: 'marco', description: '', photos: ['images/date-1.jpg', 'images/date-2.jpg', 'images/date-3.jpg', 'images/date-4.jpg', 'images/date-5.jpg', 'images/date-6.jpg'] },
   { id: 'seed-marco-05', title: 'Primeiro beijo', date: '2025-12-14', category: 'marco', description: '' },
   { id: 'seed-marco-06', title: 'Primeira vez', date: '2026-01-09', category: 'marco', description: '' },
-  { id: 'seed-marco-07', title: 'Pedido oficial de namoro', date: '2026-02-08', category: 'marco', description: '' },
+  { id: 'seed-marco-07', title: 'Pedido oficial de namoro', date: '2026-02-08', category: 'marco', description: '', photos: ['images/pedido-1.jpg'] },
+];
+
+const SEED_V4_KEY = 'lj-seeded-v4';
+const EXTRA_MOMENT_MEMORIES = [
+  { id: 'seed-momento-01', title: 'Noite na hamburgueria', date: '2025-12-23', category: 'momento', description: '', photos: ['images/hamburgueria-1.jpg'] },
+  { id: 'seed-momento-02', title: 'Manhã preguiçosa', date: '2026-01-18', category: 'momento', description: '', photos: ['images/janeiro-1.jpg'] },
 ];
 
 function seedMemories() {
@@ -85,6 +91,28 @@ function seedMemories() {
     });
     saveMemories(memories);
     localStorage.setItem(SEED_V3_KEY, 'true');
+  }
+
+  if (!localStorage.getItem(SEED_V4_KEY)) {
+    const memories = loadMemories();
+
+    // adiciona fotos aos marcos que ja existiam sem foto
+    const byId = new Map(MILESTONE_MEMORIES.map(m => [m.id, m]));
+    memories.forEach(mem => {
+      const source = byId.get(mem.id);
+      if (source && source.photos && !getMemoryPhotos(mem).length) {
+        mem.photos = source.photos;
+      }
+    });
+
+    // adiciona os novos momentos (hamburgueria e manha preguicosa)
+    const existingIds = new Set(memories.map(m => m.id));
+    EXTRA_MOMENT_MEMORIES.forEach(m => {
+      if (!existingIds.has(m.id)) memories.push(m);
+    });
+
+    saveMemories(memories);
+    localStorage.setItem(SEED_V4_KEY, 'true');
   }
 }
 
