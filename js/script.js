@@ -14,33 +14,57 @@ const CATEGORY_LABELS = {
 };
 
 const SEED_KEY = 'lj-seeded';
-const DEFAULT_MEMORIES = [
+const SEED_V2_KEY = 'lj-seeded-v2';
+
+const SERGIPE_MEMORIES = [
   {
-    id: 'seed-sergipe',
-    title: 'Viagem a Sergipe',
+    id: 'seed-sergipe-02',
+    title: 'Sergipe - Quinta-feira Santa',
+    date: '2026-04-02',
+    category: 'viagem',
+    description: 'Nossa primeira viagem juntos! Chegamos a Sergipe para viver a Semana Santa juntos.',
+    photos: ['images/sergipe-6.jpg', 'images/sergipe-7.jpg', 'images/sergipe-8.jpg', 'images/sergipe-9.jpg', 'images/sergipe-10.jpg'],
+  },
+  {
+    id: 'seed-sergipe-03',
+    title: 'Sergipe - Sexta-feira Santa',
+    date: '2026-04-03',
+    category: 'viagem',
+    description: 'Segundo dia de viagem, aproveitando cada momento em Sergipe.',
+    photos: ['images/sergipe-2.jpg', 'images/sergipe-11.jpg', 'images/sergipe-12.jpg'],
+  },
+  {
+    id: 'seed-sergipe-04',
+    title: 'Sergipe - Sábado de Aleluia',
+    date: '2026-04-04',
+    category: 'viagem',
+    description: 'Mais um dia especial da nossa primeira viagem juntos.',
+    photos: ['images/sergipe-3.jpg', 'images/sergipe-4.jpg', 'images/sergipe-5.jpg'],
+  },
+  {
+    id: 'seed-sergipe-05',
+    title: 'Sergipe - Domingo de Páscoa',
     date: '2026-04-05',
     category: 'viagem',
-    description: 'Nossa primeira viagem juntos! Fomos para Sergipe na Semana Santa.',
-    photo: 'images/sergipe-1.jpg',
+    description: 'Encerramos nossa primeira viagem juntos no Domingo de Páscoa.',
+    photos: ['images/sergipe-1.jpg'],
   },
 ];
 
 function seedMemories() {
   if (!localStorage.getItem(SEED_KEY)) {
-    if (loadMemories().length === 0) {
-      saveMemories(DEFAULT_MEMORIES);
-    }
     localStorage.setItem(SEED_KEY, 'true');
   }
 
-  // Preenche a foto/data da viagem a Sergipe para quem já tinha o momento sem foto
-  const memories = loadMemories();
-  const sergipe = memories.find(m => m.id === 'seed-sergipe');
-  if (sergipe && !sergipe.photo) {
-    sergipe.photo = 'images/sergipe-1.jpg';
-    sergipe.date = '2026-04-05';
-    saveMemories(memories);
-  }
+  if (localStorage.getItem(SEED_V2_KEY)) return;
+
+  const memories = loadMemories().filter(m => m.id !== 'seed-sergipe');
+  const existingIds = new Set(memories.map(m => m.id));
+  SERGIPE_MEMORIES.forEach(m => {
+    if (!existingIds.has(m.id)) memories.push(m);
+  });
+  saveMemories(memories);
+  localStorage.setItem(SEED_V2_KEY, 'true');
 }
 
 function loadMemories() {
@@ -172,6 +196,7 @@ function renderTimeline() {
   empty.hidden = true;
 
   memories.forEach(mem => {
+    const photos = getMemoryPhotos(mem);
     const item = document.createElement('div');
     item.className = 'timeline-item';
     item.innerHTML = `
@@ -179,30 +204,44 @@ function renderTimeline() {
       <div class="date">${formatDatePtBr(mem.date)}</div>
       <h3>${escapeHtml(mem.title)}</h3>
       ${mem.description ? `<p>${escapeHtml(mem.description)}</p>` : ''}
-      ${mem.photo ? `<img src="${mem.photo}" alt="${escapeHtml(mem.title)}" data-lightbox>` : ''}
+      ${photos.length ? `
+        <div class="timeline-photos">
+          ${photos.map(src => `<img src="${src}" alt="${escapeHtml(mem.title)}" data-lightbox>`).join('')}
+        </div>
+      ` : ''}
       <button class="delete-btn" data-id="${mem.id}">remover momento</button>
     `;
     list.appendChild(item);
   });
 }
 
+function getMemoryPhotos(mem) {
+  if (Array.isArray(mem.photos) && mem.photos.length) return mem.photos;
+  if (mem.photo) return [mem.photo];
+  return [];
+}
+
 /* ---------- Renderizar galeria ---------- */
 function renderGallery() {
-  const memories = loadMemories().filter(m => m.photo);
+  const memories = loadMemories();
   const grid = document.getElementById('gallery-grid');
   const empty = document.getElementById('gallery-empty');
   grid.innerHTML = '';
 
-  if (memories.length === 0) {
+  const allPhotos = memories.flatMap(mem =>
+    getMemoryPhotos(mem).map(src => ({ src, title: mem.title }))
+  );
+
+  if (allPhotos.length === 0) {
     empty.hidden = false;
     return;
   }
   empty.hidden = true;
 
-  memories.forEach(mem => {
+  allPhotos.forEach(({ src, title }) => {
     const img = document.createElement('img');
-    img.src = mem.photo;
-    img.alt = mem.title;
+    img.src = src;
+    img.alt = title;
     img.setAttribute('data-lightbox', '');
     grid.appendChild(img);
   });

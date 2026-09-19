@@ -325,13 +325,23 @@ body:not(.locked) .lock-screen { display: none; }
   line-height: 1.6;
   margin: 0 0 12px;
 }
-.timeline-item img {
-  max-width: 260px;
-  width: 100%;
+.timeline-photos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.timeline-photos img {
+  width: 140px;
+  height: 140px;
+  object-fit: cover;
   border-radius: 12px;
   cursor: pointer;
   box-shadow: 0 6px 18px rgba(90, 30, 50, 0.15);
-  display: block;
+  transition: transform 0.2s ease;
+}
+.timeline-photos img:hover {
+  transform: scale(1.03);
 }
 .timeline-item .delete-btn {
   margin-top: 10px;
