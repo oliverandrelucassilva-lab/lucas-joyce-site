@@ -448,6 +448,9 @@ body:not(.locked) .lock-screen { display: none; }
   z-index: 100;
   padding: 30px;
 }
+.lightbox[hidden] {
+  display: none;
+}
 .lightbox img {
   max-width: 90vw;
   max-height: 85vh;
