@@ -296,7 +296,10 @@ function renderTimeline() {
       <span class="cat">${CATEGORY_LABELS[mem.category] || mem.category}</span>
       <div class="date">${formatDatePtBr(mem.date)}</div>
       <h3>${escapeHtml(mem.title)}</h3>
-      ${mem.description ? `<p>${escapeHtml(mem.description)}</p>` : ''}
+      <div class="desc-view">
+        ${mem.description ? `<p>${escapeHtml(mem.description)}</p>` : ''}
+        <button class="edit-desc-btn" data-id="${mem.id}">✏️ ${mem.description ? 'editar descrição' : 'adicionar descrição'}</button>
+      </div>
       ${photos.length ? `
         <div class="timeline-photos">
           ${photos.map(src => `<img src="${src}" alt="${escapeHtml(mem.title)}" data-lightbox>`).join('')}
@@ -443,6 +446,112 @@ function setupMemoryForm() {
   });
 }
 
+/* ---------- Editar descrição de um momento ---------- */
+function setupDescriptionEdit() {
+  document.getElementById('timeline-list').addEventListener('click', (e) => {
+    const btn = e.target.closest('.edit-desc-btn');
+    if (!btn) return;
+
+    const id = btn.getAttribute('data-id');
+    const memories = loadMemories();
+    const mem = memories.find(m => m.id === id);
+    if (!mem) return;
+
+    const descView = btn.closest('.desc-view');
+    descView.innerHTML = `
+      <textarea class="edit-desc-textarea" rows="3">${escapeHtml(mem.description || '')}</textarea>
+      <div class="edit-desc-actions">
+        <button class="btn-secondary save-desc-btn" data-id="${id}">Salvar</button>
+        <button class="cancel-desc-btn" data-id="${id}">Cancelar</button>
+      </div>
+    `;
+    descView.querySelector('textarea').focus();
+  });
+
+  document.getElementById('timeline-list').addEventListener('click', (e) => {
+    if (e.target.matches('.save-desc-btn')) {
+      const id = e.target.getAttribute('data-id');
+      const textarea = e.target.closest('.desc-view').querySelector('textarea');
+      const memories = loadMemories();
+      const mem = memories.find(m => m.id === id);
+      if (mem) {
+        mem.description = textarea.value.trim();
+        saveMemories(memories);
+      }
+      renderTimeline();
+    } else if (e.target.matches('.cancel-desc-btn')) {
+      renderTimeline();
+    }
+  });
+}
+
+/* ---------- Adicionar fotos a um momento já existente ---------- */
+function populateAddPhotoTarget() {
+  const select = document.getElementById('add-photo-target');
+  const memories = loadMemories().slice().sort((a, b) => new Date(a.date) - new Date(b.date));
+  select.innerHTML = memories
+    .map(mem => `<option value="${mem.id}">${formatDatePtBr(mem.date)} — ${escapeHtml(mem.title)}</option>`)
+    .join('');
+}
+
+function setupAddPhotoForm() {
+  const form = document.getElementById('add-photo-form');
+  const input = document.getElementById('add-photo-input');
+  const previewWrap = document.getElementById('add-photo-preview-wrap');
+  const feedback = document.getElementById('add-photo-feedback');
+  let pendingPhotos = [];
+
+  populateAddPhotoTarget();
+
+  input.addEventListener('change', () => {
+    pendingPhotos = [];
+    previewWrap.innerHTML = '';
+    previewWrap.hidden = true;
+    feedback.hidden = true;
+
+    const files = Array.from(input.files || []);
+    if (files.length === 0) return;
+
+    let loaded = 0;
+    files.forEach((file, i) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        pendingPhotos[i] = e.target.result;
+        loaded++;
+        if (loaded === files.length) {
+          previewWrap.hidden = false;
+          previewWrap.innerHTML = pendingPhotos.map(src => `<img src="${src}" alt="pré-visualização">`).join('');
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const targetId = document.getElementById('add-photo-target').value;
+    if (!targetId || pendingPhotos.length === 0) return;
+
+    const memories = loadMemories();
+    const mem = memories.find(m => m.id === targetId);
+    if (!mem) return;
+
+    const existingPhotos = getMemoryPhotos(mem);
+    mem.photos = [...existingPhotos, ...pendingPhotos];
+    delete mem.photo;
+    saveMemories(memories);
+
+    form.reset();
+    pendingPhotos = [];
+    previewWrap.hidden = true;
+    previewWrap.innerHTML = '';
+    feedback.hidden = false;
+
+    renderTimeline();
+    renderGallery();
+  });
+}
+
 /* ---------- Formulário de datas de início ---------- */
 function setupStartDateForm() {
   const form = document.getElementById('start-date-form');
@@ -519,6 +628,8 @@ document.addEventListener('DOMContentLoaded', () => {
   renderTimeline();
   renderGallery();
   setupMemoryForm();
+  setupAddPhotoForm();
+  setupDescriptionEdit();
   setupStartDateForm();
   setupLightbox();
 });

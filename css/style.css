@@ -409,6 +409,20 @@ body:not(.locked) .lock-screen { display: none; }
   background: #fff;
   box-shadow: 0 24px 60px rgba(92, 36, 54, 0.25);
 }
+.hero-photo-card-back {
+  position: absolute;
+  inset: 0;
+  transform: rotate(-8deg) translate(-18px, 14px);
+  z-index: 0;
+  opacity: 0.9;
+}
+.hero-photo-card-back img {
+  height: 460px;
+}
+.hero-photo-wrap .hero-photo-card:not(.hero-photo-card-back) {
+  position: relative;
+  z-index: 1;
+}
 .hero-photo-card img {
   width: 100%;
   height: 460px;
@@ -493,6 +507,65 @@ body:not(.locked) .lock-screen { display: none; }
 
 /* INTRO */
 .intro { padding: 90px 0 60px; }
+
+/* DECLARAÇÃO DE AMOR */
+.love-letter-section {
+  padding: 40px 0 90px;
+}
+.love-letter-grid {
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: 48px;
+  align-items: center;
+}
+.love-letter-photo img {
+  width: 100%;
+  border-radius: 20px;
+  box-shadow: 0 20px 45px rgba(92, 36, 54, 0.2);
+  display: block;
+}
+.love-letter-text {
+  text-align: left;
+}
+.love-letter-text .section-title {
+  text-align: left;
+  margin-bottom: 18px;
+}
+.love-letter-kicker {
+  display: inline-block;
+  background: #fff;
+  border: 1px solid var(--pink-300);
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--pink-700);
+  margin-bottom: 14px;
+}
+.love-letter-text p {
+  color: #7a5a68;
+  line-height: 1.8;
+  margin-bottom: 16px;
+}
+.love-letter-signature {
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: var(--rose-900) !important;
+  font-size: 1.15rem;
+}
+
+@media (max-width: 800px) {
+  .love-letter-grid {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  .love-letter-text {
+    text-align: center;
+  }
+  .love-letter-text .section-title {
+    text-align: center;
+  }
+}
 
 /* COUNTDOWN */
 .countdown-section {
@@ -583,6 +656,49 @@ body:not(.locked) .lock-screen { display: none; }
   line-height: 1.6;
   margin: 0 0 12px;
 }
+.desc-view {
+  margin-bottom: 12px;
+}
+.edit-desc-btn {
+  background: none;
+  border: none;
+  color: var(--pink-700);
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.75;
+}
+.edit-desc-btn:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+.edit-desc-textarea {
+  width: 100%;
+  max-width: 420px;
+  font-family: var(--font-sans);
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1.5px solid var(--pink-300);
+  color: var(--ink);
+  font-size: 0.9rem;
+  resize: vertical;
+  margin-bottom: 8px;
+}
+.edit-desc-actions {
+  display: flex;
+  gap: 10px;
+}
+.edit-desc-actions .btn-secondary {
+  padding: 6px 16px;
+  font-size: 0.8rem;
+}
+.cancel-desc-btn {
+  background: none;
+  border: none;
+  color: #a97887;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
 .timeline-photos {
   display: flex;
   flex-wrap: wrap;
@@ -612,6 +728,30 @@ body:not(.locked) .lock-screen { display: none; }
 .add-section {
   background: var(--pink-50);
   padding: 90px 0;
+}
+.add-photo-section {
+  background: #fff;
+  padding: 70px 0;
+}
+.add-photo-section select {
+  font-family: var(--font-sans);
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--pink-300);
+  background: #fff;
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+.add-photo-preview-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.add-photo-preview-wrap img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 10px;
 }
 .memory-form {
   max-width: 560px;

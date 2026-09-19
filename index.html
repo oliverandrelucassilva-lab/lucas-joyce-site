@@ -74,6 +74,13 @@
 
     <div class="hero-photo-wrap">
       <span class="hero-photo-badge">📍 Primeira viagem juntos</span>
+      <div class="hero-photo-card hero-photo-card-back">
+        <img src="images/janeiro-1.jpg" alt="Manhã preguiçosa">
+        <div class="hero-photo-caption">
+          <strong>Manhã preguiçosa</strong>
+          <span>18 de Janeiro de 2026</span>
+        </div>
+      </div>
       <div class="hero-photo-card">
         <img src="images/sergipe-6.jpg" alt="Lucas e Joyce em Sergipe">
         <div class="hero-photo-caption">
@@ -96,6 +103,30 @@
       Esse cantinho guarda cada momento, cada viagem e cada foto que a gente vive juntos.
       Aqui a gente vai colecionando as datas que importam — pra nunca esquecer de nenhuma. 💛
     </p>
+  </div>
+</section>
+
+<!-- DECLARAÇÃO DE AMOR -->
+<section class="love-letter-section">
+  <div class="container love-letter-grid">
+    <div class="love-letter-photo">
+      <img src="images/hamburgueria-1.jpg" alt="Lucas e Joyce">
+    </div>
+    <div class="love-letter-text">
+      <p class="love-letter-kicker">💌 para você, Joyce</p>
+      <h2 class="section-title">Uma declaração de amor</h2>
+      <p>
+        Joyce, eu te amo demais. Cada dia ao seu lado me mostra o quanto eu sou sortudo por
+        ter você na minha vida. Você é meu amor, minha melhor amiga, meu porto seguro —
+        a pessoa que eu escolho todos os dias e vou continuar escolhendo.
+      </p>
+      <p>
+        Você é o amor da minha vida e a minha futura esposa. Sou completamente apaixonado
+        por você, pela sua risada, pelo seu jeito de cuidar de mim, por cada detalhe que te
+        faz ser exatamente quem você é. Obrigado por caminhar comigo nessa história.
+      </p>
+      <p class="love-letter-signature">Com todo o meu amor, Lucas 💛</p>
+    </div>
   </div>
 </section>
 
@@ -170,6 +201,31 @@
 
       <button type="submit" class="btn-primary">Guardar momento 💌</button>
     </form>
+  </div>
+</section>
+
+<!-- ADICIONAR FOTOS A UM MOMENTO JÁ EXISTENTE -->
+<section class="add-photo-section">
+  <div class="container">
+    <h2 class="section-title">Adicionar fotos a um momento</h2>
+    <p class="section-text">Joyce, se você tiver fotos de alguma dessas datas, é só escolher o momento e mandar aqui. 💛</p>
+
+    <form id="add-photo-form" class="memory-form">
+      <label>
+        Escolha o momento
+        <select id="add-photo-target"></select>
+      </label>
+
+      <label>
+        Fotos (pode escolher mais de uma)
+        <input type="file" id="add-photo-input" accept="image/*" multiple>
+      </label>
+
+      <div id="add-photo-preview-wrap" class="photo-preview-wrap add-photo-preview-wrap" hidden></div>
+
+      <button type="submit" class="btn-primary">Adicionar fotos 📸</button>
+    </form>
+    <p id="add-photo-feedback" class="hint" hidden>Fotos adicionadas com sucesso! 💛</p>
   </div>
 </section>
 
