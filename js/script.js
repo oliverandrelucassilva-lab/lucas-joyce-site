@@ -1,8 +1,10 @@
 const STORAGE_KEY = 'lj-memories';
-const START_DATE_KEY = 'lj-start-date';
+const TOGETHER_DATE_KEY = 'lj-together-date';
+const DATING_DATE_KEY = 'lj-dating-date';
 const UNLOCKED_KEY = 'lj-unlocked';
-const DEFAULT_START_DATE = '2026-02-08'; // 08/02/2026
-const SITE_PASSWORD_DIGITS = '08022026'; // mesma data, só números
+const DEFAULT_TOGETHER_DATE = '2025-08-13'; // 13/08/2025
+const DEFAULT_DATING_DATE = '2026-08-02'; // 02/08/2026
+const SITE_PASSWORD_DIGITS = '02082026'; // data de namoro, só números
 
 const CATEGORY_LABELS = {
   momento: 'Momento especial',
@@ -24,12 +26,20 @@ function saveMemories(memories) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(memories));
 }
 
-function loadStartDate() {
-  return localStorage.getItem(START_DATE_KEY) || DEFAULT_START_DATE;
+function loadTogetherDate() {
+  return localStorage.getItem(TOGETHER_DATE_KEY) || DEFAULT_TOGETHER_DATE;
 }
 
-function saveStartDate(date) {
-  localStorage.setItem(START_DATE_KEY, date);
+function saveTogetherDate(date) {
+  localStorage.setItem(TOGETHER_DATE_KEY, date);
+}
+
+function loadDatingDate() {
+  return localStorage.getItem(DATING_DATE_KEY) || DEFAULT_DATING_DATE;
+}
+
+function saveDatingDate(date) {
+  localStorage.setItem(DATING_DATE_KEY, date);
 }
 
 function formatDatePtBr(dateStr) {
@@ -42,24 +52,30 @@ function daysBetween(dateA, dateB) {
   return Math.floor((dateB - dateA) / msPerDay);
 }
 
-/* ---------- Contador "juntos há" ---------- */
-function updateTogetherCounter() {
-  const el = document.getElementById('together-counter');
-  const startDate = loadStartDate();
-  const start = new Date(startDate + 'T00:00:00');
+/* ---------- Contadores "juntos há" / "namorando há" ---------- */
+function daysCountText(prefix, dateStr) {
+  const start = new Date(dateStr + 'T00:00:00');
   const now = new Date();
   const days = daysBetween(start, now);
-  if (days < 0) {
-    el.textContent = 'essa data ainda vai chegar!';
-    return;
-  }
+  if (days < 0) return null;
   const years = Math.floor(days / 365);
   const remDays = days % 365;
-  let text = `juntos há ${days} dias`;
+  let text = `${prefix} há ${days} dias`;
   if (years > 0) {
     text += ` (${years} ano${years > 1 ? 's' : ''} e ${remDays} dia${remDays !== 1 ? 's' : ''})`;
   }
-  el.textContent = text;
+  return text;
+}
+
+function updateTogetherCounter() {
+  const togetherEl = document.getElementById('together-counter');
+  const datingEl = document.getElementById('dating-counter');
+
+  const togetherText = daysCountText('juntos', loadTogetherDate());
+  togetherEl.textContent = togetherText || 'essa data ainda vai chegar!';
+
+  const datingText = daysCountText('namorando', loadDatingDate());
+  datingEl.textContent = datingText || 'essa data ainda vai chegar!';
 }
 
 /* ---------- Countdown para próxima data futura ---------- */
@@ -247,15 +263,18 @@ function setupDeleteHandler() {
   });
 }
 
-/* ---------- Formulário de data de início ---------- */
+/* ---------- Formulário de datas de início ---------- */
 function setupStartDateForm() {
   const form = document.getElementById('start-date-form');
-  const input = document.getElementById('start-date-input');
-  input.value = loadStartDate();
+  const togetherInput = document.getElementById('together-date-input');
+  const datingInput = document.getElementById('dating-date-input');
+  togetherInput.value = loadTogetherDate();
+  datingInput.value = loadDatingDate();
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-    saveStartDate(input.value);
+    saveTogetherDate(togetherInput.value);
+    saveDatingDate(datingInput.value);
     updateTogetherCounter();
   });
 }

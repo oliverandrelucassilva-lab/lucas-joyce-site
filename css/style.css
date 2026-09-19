@@ -402,10 +402,20 @@ body:not(.locked) .lock-screen { display: none; }
 }
 .start-date-form {
   display: flex;
-  gap: 12px;
+  gap: 16px;
   justify-content: center;
+  align-items: flex-end;
   flex-wrap: wrap;
   margin-bottom: 16px;
+}
+.date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--rose-900);
+  text-align: left;
 }
 .start-date-form input {
   padding: 10px 14px;

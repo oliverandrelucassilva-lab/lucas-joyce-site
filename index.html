@@ -34,6 +34,7 @@
     <p class="hero-kicker">nossa historia de amor</p>
     <h1 class="hero-title"><span>Lucas</span> <span class="amp">&</span> <span>Joyce</span></h1>
     <p class="hero-subtitle" id="together-counter">calculando o tempo juntos...</p>
+    <p class="hero-subtitle" id="dating-counter">calculando o tempo namorando...</p>
     <a href="#linha-do-tempo" class="btn-scroll">ver nossa jornada ↓</a>
   </div>
 </header>
@@ -141,10 +142,17 @@
 <section class="settings-section">
   <div class="container">
     <h2 class="section-title">Início da nossa história</h2>
-    <p class="section-text">Defina a data em que vocês começaram a namorar, para o contador lá em cima funcionar certinho.</p>
+    <p class="section-text">Definam as datas de vocês para os contadores lá em cima funcionarem certinho.</p>
     <form id="start-date-form" class="start-date-form">
-      <input type="date" id="start-date-input" required>
-      <button type="submit" class="btn-secondary">Salvar data</button>
+      <label class="date-field">
+        Juntos desde
+        <input type="date" id="together-date-input" required>
+      </label>
+      <label class="date-field">
+        Namorando desde
+        <input type="date" id="dating-date-input" required>
+      </label>
+      <button type="submit" class="btn-secondary">Salvar datas</button>
     </form>
     <p class="hint">Essas informações ficam guardadas só neste navegador (localStorage). Se quiserem acessar de outro aparelho, precisam adicionar os momentos lá também.</p>
   </div>
