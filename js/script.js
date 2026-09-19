@@ -13,6 +13,26 @@ const CATEGORY_LABELS = {
   marco: 'Marco da relação',
 };
 
+const SEED_KEY = 'lj-seeded';
+const DEFAULT_MEMORIES = [
+  {
+    id: 'seed-sergipe',
+    title: 'Viagem a Sergipe',
+    date: '2026-04-02',
+    category: 'viagem',
+    description: 'Nossa primeira viagem juntos! Fomos para Sergipe na Semana Santa.',
+    photo: '',
+  },
+];
+
+function seedMemories() {
+  if (localStorage.getItem(SEED_KEY)) return;
+  if (loadMemories().length === 0) {
+    saveMemories(DEFAULT_MEMORIES);
+  }
+  localStorage.setItem(SEED_KEY, 'true');
+}
+
 function loadMemories() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -332,6 +352,7 @@ function setupLockScreen() {
 document.addEventListener('DOMContentLoaded', () => {
   setupLockScreen();
   setupFloatingHearts();
+  seedMemories();
   updateTogetherCounter();
   updateCountdown();
   renderTimeline();
