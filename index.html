@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lucas & Joyce ✨ Nossa História</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="hearts-bg"></div>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-content">
+    <p class="hero-kicker">nossa historia de amor</p>
+    <h1 class="hero-title"><span>Lucas</span> <span class="amp">&</span> <span>Joyce</span></h1>
+    <p class="hero-subtitle" id="together-counter">calculando o tempo juntos...</p>
+    <a href="#linha-do-tempo" class="btn-scroll">ver nossa jornada ↓</a>
+  </div>
+</header>
+
+<!-- SOBRE / INTRO -->
+<section class="intro">
+  <div class="container">
+    <h2 class="section-title">Um lugar só nosso</h2>
+    <p class="section-text">
+      Esse cantinho guarda cada momento, cada viagem e cada foto que a gente vive juntos.
+      Aqui a gente vai colecionando as datas que importam — pra nunca esquecer de nenhuma. 💛
+    </p>
+  </div>
+</section>
+
+<!-- CONTADOR REGRESSIVO PRÓXIMA DATA -->
+<section class="countdown-section">
+  <div class="container">
+    <h2 class="section-title light">Próxima data especial</h2>
+    <div id="countdown-box" class="countdown-box">
+      <p id="countdown-label">nenhuma data futura cadastrada ainda</p>
+      <div class="countdown-numbers" id="countdown-numbers"></div>
+    </div>
+  </div>
+</section>
+
+<!-- LINHA DO TEMPO -->
+<section id="linha-do-tempo" class="timeline-section">
+  <div class="container">
+    <h2 class="section-title">Nossa Linha do Tempo</h2>
+    <p class="section-text">Todos os momentos que a gente decidiu guardar.</p>
+
+    <div class="timeline" id="timeline-list">
+      <!-- momentos inseridos via JS -->
+    </div>
+
+    <div class="empty-state" id="timeline-empty" hidden>
+      <p>Ainda não tem nenhum momento guardado. Que tal adicionar o primeiro? 👇</p>
+    </div>
+  </div>
+</section>
+
+<!-- ADICIONAR MOMENTO -->
+<section class="add-section">
+  <div class="container">
+    <h2 class="section-title">Guardar um novo momento</h2>
+    <p class="section-text">Registrem juntos as datas, viagens e fotos importantes.</p>
+
+    <form id="memory-form" class="memory-form">
+      <div class="form-row">
+        <label>
+          Título
+          <input type="text" id="mem-title" placeholder="Ex: Nosso primeiro encontro" required>
+        </label>
+        <label>
+          Data
+          <input type="date" id="mem-date" required>
+        </label>
+      </div>
+
+      <label>
+        Categoria
+        <select id="mem-category">
+          <option value="momento">Momento especial</option>
+          <option value="viagem">Viagem</option>
+          <option value="aniversario">Aniversário / Datas comemorativas</option>
+          <option value="marco">Marco da relação</option>
+        </select>
+      </label>
+
+      <label>
+        Descrição
+        <textarea id="mem-desc" rows="3" placeholder="Conte um pouco sobre esse momento..."></textarea>
+      </label>
+
+      <label>
+        Foto (opcional)
+        <input type="file" id="mem-photo" accept="image/*">
+      </label>
+
+      <div id="photo-preview-wrap" class="photo-preview-wrap" hidden>
+        <img id="photo-preview" alt="Pré-visualização da foto">
+      </div>
+
+      <button type="submit" class="btn-primary">Guardar momento 💌</button>
+    </form>
+  </div>
+</section>
+
+<!-- GALERIA -->
+<section class="gallery-section">
+  <div class="container">
+    <h2 class="section-title">Álbum de Fotos</h2>
+    <p class="section-text">Cada foto guardada nos momentos acima aparece aqui também.</p>
+
+    <div class="gallery-grid" id="gallery-grid"></div>
+
+    <div class="empty-state" id="gallery-empty" hidden>
+      <p>As fotos que vocês adicionarem nos momentos vão aparecer aqui. 📸</p>
+    </div>
+  </div>
+</section>
+
+<!-- CONFIGURAÇÕES: DATA DE INÍCIO -->
+<section class="settings-section">
+  <div class="container">
+    <h2 class="section-title">Início da nossa história</h2>
+    <p class="section-text">Defina a data em que vocês começaram a namorar, para o contador lá em cima funcionar certinho.</p>
+    <form id="start-date-form" class="start-date-form">
+      <input type="date" id="start-date-input" required>
+      <button type="submit" class="btn-secondary">Salvar data</button>
+    </form>
+    <p class="hint">Essas informações ficam guardadas só neste navegador (localStorage). Se quiserem acessar de outro aparelho, precisam adicionar os momentos lá também.</p>
+  </div>
+</section>
+
+<footer class="footer">
+  <p>feito com 💛 para guardar cada capítulo de Lucas &amp; Joyce</p>
+</footer>
+
+<!-- MODAL DE FOTO -->
+<div id="lightbox" class="lightbox" hidden>
+  <button id="lightbox-close" class="lightbox-close">&times;</button>
+  <img id="lightbox-img" src="" alt="Foto ampliada">
+</div>
+
+<script src="js/script.js"></script>
+</body>
+</html>
