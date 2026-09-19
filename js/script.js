@@ -290,19 +290,24 @@ function renderTimeline() {
 
   memories.forEach(mem => {
     const photos = getMemoryPhotos(mem);
+    const videos = getMemoryVideos(mem);
     const item = document.createElement('div');
     item.className = 'timeline-item';
     item.innerHTML = `
       <span class="cat">${CATEGORY_LABELS[mem.category] || mem.category}</span>
       <div class="date">${formatDatePtBr(mem.date)}</div>
-      <h3>${escapeHtml(mem.title)}</h3>
+      <div class="title-view">
+        <h3>${escapeHtml(mem.title)}</h3>
+        <button class="edit-title-btn" data-id="${mem.id}">✏️</button>
+      </div>
       <div class="desc-view">
         ${mem.description ? `<p>${escapeHtml(mem.description)}</p>` : ''}
         <button class="edit-desc-btn" data-id="${mem.id}">✏️ ${mem.description ? 'editar descrição' : 'adicionar descrição'}</button>
       </div>
-      ${photos.length ? `
+      ${(photos.length || videos.length) ? `
         <div class="timeline-photos">
           ${photos.map(src => `<img src="${src}" alt="${escapeHtml(mem.title)}" data-lightbox>`).join('')}
+          ${videos.map(src => `<video src="${src}" controls></video>`).join('')}
         </div>
       ` : ''}
     `;
@@ -316,29 +321,42 @@ function getMemoryPhotos(mem) {
   return [];
 }
 
-/* ---------- Renderizar galeria ---------- */
+function getMemoryVideos(mem) {
+  return Array.isArray(mem.videos) ? mem.videos : [];
+}
+
+/* ---------- Renderizar galeria (ordem cronológica) ---------- */
 function renderGallery() {
-  const memories = loadMemories();
+  const memories = loadMemories().slice().sort((a, b) => new Date(a.date) - new Date(b.date));
   const grid = document.getElementById('gallery-grid');
   const empty = document.getElementById('gallery-empty');
   grid.innerHTML = '';
 
-  const allPhotos = memories.flatMap(mem =>
-    getMemoryPhotos(mem).map(src => ({ src, title: mem.title }))
-  );
+  const allMedia = memories.flatMap(mem => [
+    ...getMemoryPhotos(mem).map(src => ({ src, title: mem.title, type: 'photo' })),
+    ...getMemoryVideos(mem).map(src => ({ src, title: mem.title, type: 'video' })),
+  ]);
 
-  if (allPhotos.length === 0) {
+  if (allMedia.length === 0) {
     empty.hidden = false;
     return;
   }
   empty.hidden = true;
 
-  allPhotos.forEach(({ src, title }) => {
-    const img = document.createElement('img');
-    img.src = src;
-    img.alt = title;
-    img.setAttribute('data-lightbox', '');
-    grid.appendChild(img);
+  allMedia.forEach(({ src, title, type }) => {
+    if (type === 'video') {
+      const video = document.createElement('video');
+      video.src = src;
+      video.controls = true;
+      video.className = 'gallery-video';
+      grid.appendChild(video);
+    } else {
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = title;
+      img.setAttribute('data-lightbox', '');
+      grid.appendChild(img);
+    }
   });
 }
 
@@ -485,6 +503,375 @@ function setupDescriptionEdit() {
   });
 }
 
+/* ---------- Editar título de um momento ---------- */
+function setupTitleEdit() {
+  document.getElementById('timeline-list').addEventListener('click', (e) => {
+    const btn = e.target.closest('.edit-title-btn');
+    if (!btn) return;
+
+    const id = btn.getAttribute('data-id');
+    const memories = loadMemories();
+    const mem = memories.find(m => m.id === id);
+    if (!mem) return;
+
+    const titleView = btn.closest('.title-view');
+    titleView.innerHTML = `
+      <input type="text" class="edit-title-input" value="${escapeHtml(mem.title)}">
+      <button class="btn-secondary save-title-btn" data-id="${id}">Salvar</button>
+      <button class="cancel-title-btn" data-id="${id}">Cancelar</button>
+    `;
+    const input = titleView.querySelector('.edit-title-input');
+    input.focus();
+    input.select();
+  });
+
+  document.getElementById('timeline-list').addEventListener('click', (e) => {
+    if (e.target.matches('.save-title-btn')) {
+      const id = e.target.getAttribute('data-id');
+      const input = e.target.closest('.title-view').querySelector('.edit-title-input');
+      const value = input.value.trim();
+      const memories = loadMemories();
+      const mem = memories.find(m => m.id === id);
+      if (mem && value) {
+        mem.title = value;
+        saveMemories(memories);
+      }
+      renderTimeline();
+      renderGallery();
+    } else if (e.target.matches('.cancel-title-btn')) {
+      renderTimeline();
+    }
+  });
+}
+
+/* ---------- Organizador em massa de fotos e vídeos ---------- */
+
+// Leitor minimo de EXIF (DateTimeOriginal) para JPEGs, sem depender de bibliotecas externas
+function parseJpegExifDate(buffer) {
+  try {
+    const view = new DataView(buffer);
+    if (view.getUint16(0) !== 0xFFD8) return null;
+
+    let offset = 2;
+    while (offset < view.byteLength - 4) {
+      const marker = view.getUint16(offset);
+      if ((marker & 0xFF00) !== 0xFF00) break;
+      if (marker === 0xFFD8) { offset += 2; continue; }
+      if (marker === 0xFFDA) break;
+
+      const segLength = view.getUint16(offset + 2);
+      if (marker === 0xFFE1) {
+        const date = parseExifApp1(view, offset + 4);
+        if (date) return date;
+      }
+      offset += 2 + segLength;
+    }
+  } catch (e) {
+    // arquivo mal formado, ignora
+  }
+  return null;
+}
+
+function parseExifApp1(view, start) {
+  if (view.getUint32(start) !== 0x45786966) return null; // "Exif"
+  const tiffStart = start + 6;
+  const little = view.getUint16(tiffStart) === 0x4949;
+  const get16 = (off) => view.getUint16(off, little);
+  const get32 = (off) => view.getUint32(off, little);
+
+  const ifd0Addr = tiffStart + get32(tiffStart + 4);
+  const numEntries0 = get16(ifd0Addr);
+  let exifIfdOffset = null;
+  for (let i = 0; i < numEntries0; i++) {
+    const entryAddr = ifd0Addr + 2 + i * 12;
+    if (get16(entryAddr) === 0x8769) {
+      exifIfdOffset = get32(entryAddr + 8);
+      break;
+    }
+  }
+  if (exifIfdOffset == null) return null;
+
+  const exifIfdAddr = tiffStart + exifIfdOffset;
+  const numEntriesExif = get16(exifIfdAddr);
+  for (let i = 0; i < numEntriesExif; i++) {
+    const entryAddr = exifIfdAddr + 2 + i * 12;
+    const tag = get16(entryAddr);
+    if (tag === 0x9003 || tag === 0x9004) {
+      const count = get32(entryAddr + 4);
+      const strOffset = count <= 4 ? entryAddr + 8 : tiffStart + get32(entryAddr + 8);
+      let str = '';
+      for (let j = 0; j < count - 1; j++) {
+        str += String.fromCharCode(view.getUint8(strOffset + j));
+      }
+      const m = str.match(/(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2}):(\d{2})/);
+      if (m) return new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]);
+    }
+  }
+  return null;
+}
+
+function isJpegFile(file) {
+  return /\.jpe?g$/i.test(file.name) || file.type === 'image/jpeg';
+}
+
+function isHeicFile(file) {
+  return /\.(heic|heif)$/i.test(file.name) || file.type === 'image/heic' || file.type === 'image/heif';
+}
+
+function readFileDate(file) {
+  return new Promise((resolve) => {
+    if (!isJpegFile(file)) {
+      resolve(new Date(file.lastModified));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(parseJpegExifDate(e.target.result) || new Date(file.lastModified));
+    reader.onerror = () => resolve(new Date(file.lastModified));
+    reader.readAsArrayBuffer(file.slice(0, 131072));
+  });
+}
+
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function convertHeicIfNeeded(file) {
+  if (!isHeicFile(file) || typeof heic2any === 'undefined') return file;
+  try {
+    const converted = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.85 });
+    return Array.isArray(converted) ? converted[0] : converted;
+  } catch (e) {
+    return file;
+  }
+}
+
+function resizeImageToDataUrl(blob, maxDim, quality) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        if (width > height) {
+          height = Math.round(height * (maxDim / width));
+          width = maxDim;
+        } else {
+          width = Math.round(width * (maxDim / height));
+          height = maxDim;
+        }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = (e) => {
+      URL.revokeObjectURL(url);
+      reject(e);
+    };
+    img.src = url;
+  });
+}
+
+function toDateInputValue(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+let organizerItems = [];
+
+function setupOrganizer() {
+  const input = document.getElementById('organizer-input');
+  const grid = document.getElementById('organizer-grid');
+  const actions = document.getElementById('organizer-actions');
+  const feedback = document.getElementById('organizer-feedback');
+  const sortBtn = document.getElementById('organizer-sort-btn');
+  const saveBtn = document.getElementById('organizer-save-btn');
+
+  function renderOrganizerGrid() {
+    grid.innerHTML = '';
+    actions.hidden = organizerItems.length === 0;
+
+    organizerItems.forEach((item, index) => {
+      const card = document.createElement('div');
+      card.className = 'organizer-card';
+      card.draggable = true;
+      card.dataset.index = index;
+
+      const media = item.isVideo
+        ? `<video src="${item.url}" muted></video>`
+        : isHeicFile(item.file)
+          ? `<div class="organizer-heic-placeholder"><span class="icon">📷</span>HEIC</div>`
+          : `<img src="${item.url}" alt="prévia">`;
+
+      card.innerHTML = `
+        ${media}
+        <input type="date" value="${toDateInputValue(item.date)}">
+        <button type="button" class="organizer-remove">remover</button>
+      `;
+
+      card.querySelector('input[type="date"]').addEventListener('change', (e) => {
+        const [y, m, d] = e.target.value.split('-').map(Number);
+        item.date = new Date(y, m - 1, d);
+      });
+
+      card.querySelector('.organizer-remove').addEventListener('click', () => {
+        URL.revokeObjectURL(item.url);
+        organizerItems.splice(index, 1);
+        renderOrganizerGrid();
+      });
+
+      card.addEventListener('dragstart', () => card.classList.add('dragging'));
+      card.addEventListener('dragend', () => {
+        card.classList.remove('dragging');
+        Array.from(grid.children).forEach(c => c.classList.remove('drag-over'));
+      });
+      card.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        card.classList.add('drag-over');
+      });
+      card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
+      card.addEventListener('drop', (e) => {
+        e.preventDefault();
+        card.classList.remove('drag-over');
+        const draggingCard = grid.querySelector('.dragging');
+        if (!draggingCard || draggingCard === card) return;
+        const fromIndex = Number(draggingCard.dataset.index);
+        const toIndex = Number(card.dataset.index);
+        const [moved] = organizerItems.splice(fromIndex, 1);
+        organizerItems.splice(toIndex, 0, moved);
+        renderOrganizerGrid();
+      });
+
+      grid.appendChild(card);
+    });
+  }
+
+  input.addEventListener('change', async () => {
+    const files = Array.from(input.files || []);
+    if (files.length === 0) return;
+    feedback.hidden = true;
+
+    for (const file of files) {
+      const isVideo = file.type.startsWith('video/');
+      const date = await readFileDate(file);
+      organizerItems.push({
+        id: 'org-' + Math.random().toString(36).slice(2),
+        file,
+        url: URL.createObjectURL(file),
+        date,
+        isVideo,
+      });
+    }
+
+    organizerItems.sort((a, b) => a.date - b.date);
+    renderOrganizerGrid();
+    input.value = '';
+  });
+
+  sortBtn.addEventListener('click', () => {
+    organizerItems.sort((a, b) => a.date - b.date);
+    renderOrganizerGrid();
+  });
+
+  saveBtn.addEventListener('click', async () => {
+    if (organizerItems.length === 0) return;
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Organizando...';
+
+    const memories = loadMemories();
+    let skippedVideos = 0;
+
+    const groups = new Map();
+    organizerItems.forEach(item => {
+      const key = toDateInputValue(item.date);
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(item);
+    });
+
+    for (const [dateKey, items] of groups) {
+      let mem = memories.find(m => m.date === dateKey);
+      if (!mem) {
+        mem = {
+          id: 'mem-' + Date.now().toString() + '-' + Math.random().toString(36).slice(2, 6),
+          title: `Momento em ${formatDatePtBr(dateKey)}`,
+          date: dateKey,
+          category: 'momento',
+          description: '',
+          photos: [],
+          videos: [],
+        };
+        memories.push(mem);
+      }
+      const existingPhotos = getMemoryPhotos(mem);
+      mem.photos = Array.isArray(mem.photos) ? mem.photos : existingPhotos;
+      if (!Array.isArray(mem.photos)) mem.photos = [];
+      if (!Array.isArray(mem.videos)) mem.videos = [];
+      delete mem.photo;
+
+      for (const item of items) {
+        if (item.isVideo) {
+          if (item.file.size > 6 * 1024 * 1024) {
+            skippedVideos++;
+            continue;
+          }
+          try {
+            mem.videos.push(await fileToDataUrl(item.file));
+          } catch (e) {
+            skippedVideos++;
+          }
+        } else {
+          try {
+            const blob = await convertHeicIfNeeded(item.file);
+            mem.photos.push(await resizeImageToDataUrl(blob, 1600, 0.8));
+          } catch (e) {
+            try {
+              mem.photos.push(await fileToDataUrl(item.file));
+            } catch (e2) {
+              // não deu pra ler esse arquivo, pula
+            }
+          }
+        }
+      }
+    }
+
+    try {
+      saveMemories(memories);
+    } catch (e) {
+      feedback.hidden = false;
+      feedback.textContent = 'Não deu pra salvar tudo — o navegador atingiu o limite de armazenamento. Tente adicionar menos fotos/vídeos por vez.';
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Organizar e guardar tudo 💾';
+      return;
+    }
+
+    organizerItems.forEach(item => URL.revokeObjectURL(item.url));
+    organizerItems = [];
+    renderOrganizerGrid();
+
+    feedback.hidden = false;
+    feedback.textContent = skippedVideos > 0
+      ? `Tudo organizado! ${skippedVideos} vídeo(s) grande(s) demais não coube(ram) e não foi(ram) salvo(s).`
+      : 'Tudo organizado e guardado! 💛';
+
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Organizar e guardar tudo 💾';
+
+    renderTimeline();
+    renderGallery();
+    updateCountdown();
+  });
+}
+
 /* ---------- Adicionar fotos a um momento já existente ---------- */
 function populateAddPhotoTarget() {
   const select = document.getElementById('add-photo-target');
@@ -628,8 +1015,10 @@ document.addEventListener('DOMContentLoaded', () => {
   renderTimeline();
   renderGallery();
   setupMemoryForm();
+  setupOrganizer();
   setupAddPhotoForm();
   setupDescriptionEdit();
+  setupTitleEdit();
   setupStartDateForm();
   setupLightbox();
 });

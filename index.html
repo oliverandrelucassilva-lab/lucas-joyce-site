@@ -157,6 +157,41 @@
   </div>
 </section>
 
+<!-- ORGANIZADOR EM MASSA DE FOTOS E VÍDEOS -->
+<section class="organizer-section">
+  <div class="container">
+    <h2 class="section-title">Organizador de fotos e vídeos</h2>
+    <p class="section-text">
+      Jogue aqui todas as fotos e vídeos de uma vez que o site tenta organizar
+      por data automaticamente (usando a data da própria foto). Antes de salvar,
+      dá pra arrastar pra reordenar ou corrigir a data de qualquer item.
+    </p>
+
+    <div class="organizer-box">
+      <label class="organizer-drop">
+        <input type="file" id="organizer-input" accept="image/*,video/*" multiple hidden>
+        <span>📥 Escolher fotos e vídeos</span>
+      </label>
+
+      <div id="organizer-grid" class="organizer-grid"></div>
+
+      <div id="organizer-actions" class="organizer-actions" hidden>
+        <button type="button" id="organizer-sort-btn" class="btn-secondary">Reordenar por data</button>
+        <button type="button" id="organizer-save-btn" class="btn-primary">Organizar e guardar tudo 💾</button>
+      </div>
+
+      <p id="organizer-feedback" class="hint" hidden></p>
+
+      <p class="hint">
+        Funciona melhor com fotos .jpg (a data é lida da própria foto). Fotos .heic do
+        iPhone e vídeos usam a data de modificação do arquivo — se vier errada, é só
+        corrigir no campinho de data antes de salvar. Vídeos grandes podem não ser
+        salvos por causa do limite de armazenamento do navegador.
+      </p>
+    </div>
+  </div>
+</section>
+
 <!-- ADICIONAR MOMENTO -->
 <section class="add-section">
   <div class="container">
@@ -277,6 +312,7 @@
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 <script src="js/script.js"></script>
 </body>
 </html>
