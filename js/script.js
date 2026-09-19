@@ -117,6 +117,15 @@ function saveDatingDate(date) {
   localStorage.setItem(DATING_DATE_KEY, date);
 }
 
+const DATING_DATE_FIX_KEY = 'lj-dating-date-fixed-v1';
+function fixWrongDatingDate() {
+  if (localStorage.getItem(DATING_DATE_FIX_KEY)) return;
+  if (localStorage.getItem(DATING_DATE_KEY) === '2026-08-02') {
+    saveDatingDate(DEFAULT_DATING_DATE);
+  }
+  localStorage.setItem(DATING_DATE_FIX_KEY, 'true');
+}
+
 function formatDatePtBr(dateStr) {
   const [y, m, d] = dateStr.split('-');
   return `${d}/${m}/${y}`;
@@ -145,10 +154,15 @@ function setupLiveTimer(containerId, dateStr) {
     const seconds = Math.floor((diff / 1000) % 60);
 
     container.innerHTML = `
-      <div class="unit"><span class="num">${days}</span><span class="lbl">dias</span></div>
-      <div class="unit"><span class="num">${hours}</span><span class="lbl">horas</span></div>
-      <div class="unit"><span class="num">${minutes}</span><span class="lbl">min</span></div>
-      <div class="unit"><span class="num">${seconds}</span><span class="lbl">seg</span></div>
+      <div class="timer-days">
+        <span class="days-num">${days}</span>
+        <span class="days-lbl">dias</span>
+      </div>
+      <div class="timer-sub">
+        <div class="unit"><span class="num">${hours}</span><span class="lbl">horas</span></div>
+        <div class="unit"><span class="num">${minutes}</span><span class="lbl">min</span></div>
+        <div class="unit"><span class="num">${seconds}</span><span class="lbl">seg</span></div>
+      </div>
     `;
   }
 
@@ -441,6 +455,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupLockScreen();
   setupFloatingHearts();
   seedMemories();
+  fixWrongDatingDate();
   updateTogetherCounter();
   updateCountdown();
   renderTimeline();

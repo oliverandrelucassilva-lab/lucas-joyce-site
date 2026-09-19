@@ -193,29 +193,49 @@ body:not(.locked) .lock-screen { display: none; }
   font-weight: 600;
   margin: 0 0 12px;
 }
-.timer-numbers {
+.timer-days {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.days-num {
+  font-family: var(--font-serif);
+  font-size: 3rem;
+  line-height: 1;
+  color: var(--rose-900);
+}
+.days-lbl {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--pink-700);
+  font-weight: 600;
+}
+.timer-sub {
   display: flex;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
 }
-.timer-numbers .unit {
+.timer-sub .unit {
   background: #fff;
-  border-radius: 12px;
-  padding: 10px 12px;
-  min-width: 60px;
-  box-shadow: 0 4px 10px rgba(90, 30, 50, 0.1);
+  border-radius: 10px;
+  padding: 6px 10px;
+  min-width: 44px;
+  box-shadow: 0 3px 8px rgba(90, 30, 50, 0.08);
 }
-.timer-numbers .unit .num {
+.timer-sub .unit .num {
   font-family: var(--font-serif);
-  font-size: 1.5rem;
+  font-size: 0.95rem;
   color: var(--rose-900);
   display: block;
-  line-height: 1.1;
+  line-height: 1.2;
 }
-.timer-numbers .unit .lbl {
-  font-size: 0.65rem;
+.timer-sub .unit .lbl {
+  font-size: 0.55rem;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   color: #a97887;
 }
 .btn-scroll {
