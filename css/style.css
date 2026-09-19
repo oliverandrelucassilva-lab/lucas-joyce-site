@@ -452,6 +452,24 @@ body:not(.locked) .lock-screen { display: none; }
   animation: heartPulse 3.5s ease-in-out infinite;
   filter: drop-shadow(0 4px 8px rgba(224, 53, 75, 0.35));
 }
+.hero-photo-sticker {
+  position: absolute;
+  bottom: -16px;
+  left: -16px;
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow: 0 6px 14px rgba(92, 36, 54, 0.25);
+  transform: rotate(-9deg);
+  z-index: 2;
+  cursor: default;
+  transition: transform 0.25s ease;
+}
+.hero-photo-sticker:hover {
+  transform: rotate(-9deg) scale(1.12);
+}
 
 @media (max-width: 900px) {
   .hero-grid {
