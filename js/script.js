@@ -3,7 +3,7 @@ const TOGETHER_DATE_KEY = 'lj-together-date';
 const DATING_DATE_KEY = 'lj-dating-date';
 const UNLOCKED_KEY = 'lj-unlocked';
 const DEFAULT_TOGETHER_DATE = '2025-08-13'; // 13/08/2025
-const DEFAULT_DATING_DATE = '2026-08-02'; // 02/08/2026
+const DEFAULT_DATING_DATE = '2026-02-08'; // 08/02/2026 (pedido oficial)
 const SITE_PASSWORD_DIGITS = '080226'; // 08/02/26, só números
 
 const CATEGORY_LABELS = {
@@ -51,20 +51,41 @@ const SERGIPE_MEMORIES = [
   },
 ];
 
+const SEED_V3_KEY = 'lj-seeded-v3';
+const MILESTONE_MEMORIES = [
+  { id: 'seed-marco-01', title: 'Começamos a conversar', date: '2025-08-13', category: 'marco', description: '' },
+  { id: 'seed-marco-02', title: 'Primeiro selinho', date: '2025-09-26', category: 'marco', description: '' },
+  { id: 'seed-marco-03', title: 'Contei pro meu pai', date: '2025-10-26', category: 'marco', description: '' },
+  { id: 'seed-marco-04', title: 'Primeiro date', date: '2025-11-30', category: 'marco', description: '' },
+  { id: 'seed-marco-05', title: 'Primeiro beijo', date: '2025-12-14', category: 'marco', description: '' },
+  { id: 'seed-marco-06', title: 'Primeira vez', date: '2026-01-09', category: 'marco', description: '' },
+  { id: 'seed-marco-07', title: 'Pedido oficial de namoro', date: '2026-02-08', category: 'marco', description: '' },
+];
+
 function seedMemories() {
   if (!localStorage.getItem(SEED_KEY)) {
     localStorage.setItem(SEED_KEY, 'true');
   }
 
-  if (localStorage.getItem(SEED_V2_KEY)) return;
+  if (!localStorage.getItem(SEED_V2_KEY)) {
+    const memories = loadMemories().filter(m => m.id !== 'seed-sergipe');
+    const existingIds = new Set(memories.map(m => m.id));
+    SERGIPE_MEMORIES.forEach(m => {
+      if (!existingIds.has(m.id)) memories.push(m);
+    });
+    saveMemories(memories);
+    localStorage.setItem(SEED_V2_KEY, 'true');
+  }
 
-  const memories = loadMemories().filter(m => m.id !== 'seed-sergipe');
-  const existingIds = new Set(memories.map(m => m.id));
-  SERGIPE_MEMORIES.forEach(m => {
-    if (!existingIds.has(m.id)) memories.push(m);
-  });
-  saveMemories(memories);
-  localStorage.setItem(SEED_V2_KEY, 'true');
+  if (!localStorage.getItem(SEED_V3_KEY)) {
+    const memories = loadMemories();
+    const existingIds = new Set(memories.map(m => m.id));
+    MILESTONE_MEMORIES.forEach(m => {
+      if (!existingIds.has(m.id)) memories.push(m);
+    });
+    saveMemories(memories);
+    localStorage.setItem(SEED_V3_KEY, 'true');
+  }
 }
 
 function loadMemories() {
@@ -209,7 +230,6 @@ function renderTimeline() {
           ${photos.map(src => `<img src="${src}" alt="${escapeHtml(mem.title)}" data-lightbox>`).join('')}
         </div>
       ` : ''}
-      <button class="delete-btn" data-id="${mem.id}">remover momento</button>
     `;
     list.appendChild(item);
   });
@@ -258,13 +278,39 @@ function setupLightbox() {
   const lightbox = document.getElementById('lightbox');
   const lightboxImg = document.getElementById('lightbox-img');
   const closeBtn = document.getElementById('lightbox-close');
+  const prevBtn = document.getElementById('lightbox-prev');
+  const nextBtn = document.getElementById('lightbox-next');
+
+  let currentGroup = [];
+  let currentIndex = 0;
+
+  function show(index) {
+    currentIndex = (index + currentGroup.length) % currentGroup.length;
+    lightboxImg.src = currentGroup[currentIndex];
+  }
 
   document.addEventListener('click', (e) => {
     if (e.target.matches('[data-lightbox]')) {
-      lightboxImg.src = e.target.src;
+      const container = e.target.closest('.timeline-photos, #gallery-grid');
+      const groupImgs = container
+        ? Array.from(container.querySelectorAll('[data-lightbox]'))
+        : [e.target];
+      currentGroup = groupImgs.map(img => img.src);
+      show(groupImgs.indexOf(e.target));
       lightbox.hidden = false;
     }
   });
+
+  prevBtn.addEventListener('click', (e) => { e.stopPropagation(); show(currentIndex - 1); });
+  nextBtn.addEventListener('click', (e) => { e.stopPropagation(); show(currentIndex + 1); });
+
+  document.addEventListener('keydown', (e) => {
+    if (lightbox.hidden) return;
+    if (e.key === 'ArrowLeft') show(currentIndex - 1);
+    if (e.key === 'ArrowRight') show(currentIndex + 1);
+    if (e.key === 'Escape') lightbox.hidden = true;
+  });
+
   closeBtn.addEventListener('click', () => { lightbox.hidden = true; });
   lightbox.addEventListener('click', (e) => {
     if (e.target === lightbox) lightbox.hidden = true;
@@ -322,21 +368,6 @@ function setupMemoryForm() {
     renderTimeline();
     renderGallery();
     updateCountdown();
-  });
-}
-
-/* ---------- Remover memória (delegação de evento) ---------- */
-function setupDeleteHandler() {
-  document.getElementById('timeline-list').addEventListener('click', (e) => {
-    if (e.target.matches('.delete-btn')) {
-      const id = e.target.getAttribute('data-id');
-      if (!confirm('Remover este momento guardado?')) return;
-      const memories = loadMemories().filter(m => m.id !== id);
-      saveMemories(memories);
-      renderTimeline();
-      renderGallery();
-      updateCountdown();
-    }
   });
 }
 
@@ -415,7 +446,6 @@ document.addEventListener('DOMContentLoaded', () => {
   renderTimeline();
   renderGallery();
   setupMemoryForm();
-  setupDeleteHandler();
   setupStartDateForm();
   setupLightbox();
 });

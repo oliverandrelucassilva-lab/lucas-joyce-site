@@ -343,17 +343,6 @@ body:not(.locked) .lock-screen { display: none; }
 .timeline-photos img:hover {
   transform: scale(1.03);
 }
-.timeline-item .delete-btn {
-  margin-top: 10px;
-  background: none;
-  border: none;
-  color: #b46b7c;
-  font-size: 0.75rem;
-  cursor: pointer;
-  text-decoration: underline;
-  padding: 0;
-}
-
 .empty-state {
   text-align: center;
   color: #b48a97;
@@ -527,8 +516,38 @@ body:not(.locked) .lock-screen { display: none; }
   cursor: pointer;
   line-height: 1;
 }
+.lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: #fff;
+  font-size: 2.5rem;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  cursor: pointer;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+}
+.lightbox-nav:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+.lightbox-prev { left: 16px; }
+.lightbox-next { right: 16px; }
 
 @media (max-width: 600px) {
+  .lightbox-nav {
+    width: 42px;
+    height: 42px;
+    font-size: 2rem;
+  }
+  .lightbox-prev { left: 6px; }
+  .lightbox-next { right: 6px; }
   .form-row { flex-direction: column; }
   .timeline { padding-left: 20px; }
   .timeline-item { padding-left: 20px; }
