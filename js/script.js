@@ -134,14 +134,42 @@ function formatDatePtBr(dateStr) {
 /* ---------- Temporizadores ao vivo "juntos há" / "namorando há" ---------- */
 const liveTimerIntervals = {};
 
+function breakdownYearsMonthsDays(startDate, now) {
+  let years = now.getFullYear() - startDate.getFullYear();
+  let months = now.getMonth() - startDate.getMonth();
+  let days = now.getDate() - startDate.getDate();
+
+  if (days < 0) {
+    months -= 1;
+    const prevMonthLastDay = new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+    days += prevMonthLastDay;
+  }
+  if (months < 0) {
+    years -= 1;
+    months += 12;
+  }
+  return { years, months, days };
+}
+
+function formatBreakdown({ years, months, days }) {
+  const parts = [];
+  if (years > 0) parts.push(`${years} ano${years > 1 ? 's' : ''}`);
+  if (months > 0) parts.push(`${months} ${months > 1 ? 'meses' : 'mês'}`);
+  if (days > 0 || parts.length === 0) parts.push(`${days} dia${days !== 1 ? 's' : ''}`);
+
+  if (parts.length === 1) return parts[0];
+  return parts.slice(0, -1).join(', ') + ' e ' + parts[parts.length - 1];
+}
+
 function setupLiveTimer(containerId, dateStr) {
   const container = document.getElementById(containerId);
-  const target = new Date(dateStr + 'T00:00:00').getTime();
+  const target = new Date(dateStr + 'T00:00:00');
 
   if (liveTimerIntervals[containerId]) clearInterval(liveTimerIntervals[containerId]);
 
   function tick() {
-    const diff = Date.now() - target;
+    const now = new Date();
+    const diff = now.getTime() - target.getTime();
 
     if (diff < 0) {
       container.innerHTML = `<p class="timer-pending">essa data ainda vai chegar!</p>`;
@@ -152,12 +180,14 @@ function setupLiveTimer(containerId, dateStr) {
     const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
     const minutes = Math.floor((diff / (1000 * 60)) % 60);
     const seconds = Math.floor((diff / 1000) % 60);
+    const breakdownText = formatBreakdown(breakdownYearsMonthsDays(target, now));
 
     container.innerHTML = `
       <div class="timer-days">
         <span class="days-num">${days}</span>
         <span class="days-lbl">dias</span>
       </div>
+      <p class="timer-breakdown">${breakdownText}</p>
       <div class="timer-sub">
         <div class="unit"><span class="num">${hours}</span><span class="lbl">horas</span></div>
         <div class="unit"><span class="num">${minutes}</span><span class="lbl">min</span></div>
