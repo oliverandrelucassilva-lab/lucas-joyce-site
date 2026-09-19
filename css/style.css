@@ -152,8 +152,37 @@ body:not(.locked) .lock-screen { display: none; }
   background: linear-gradient(160deg, var(--pink-100), var(--pink-50) 60%, #fff);
   position: relative;
   padding: 60px 20px;
+  overflow: hidden;
 }
+
+.hero-hearts-deco {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.deco-heart {
+  position: absolute;
+  color: #e0354b;
+  opacity: 0.85;
+  animation: heartPulse 3.5s ease-in-out infinite;
+}
+.deco-heart.h1 { top: 8%; left: 6%; font-size: 2.4rem; opacity: 0.5; animation-delay: 0s; }
+.deco-heart.h2 { top: 18%; left: 46%; font-size: 1.2rem; opacity: 0.35; animation-delay: 0.6s; }
+.deco-heart.h3 { top: 65%; left: 3%; font-size: 1.8rem; opacity: 0.4; animation-delay: 1.1s; }
+.deco-heart.h4 { top: 78%; left: 38%; font-size: 1.3rem; opacity: 0.3; animation-delay: 1.6s; }
+.deco-heart.h5 { top: 12%; left: 88%; font-size: 2rem; opacity: 0.45; animation-delay: 0.3s; }
+.deco-heart.h6 { top: 55%; left: 94%; font-size: 1.4rem; opacity: 0.35; animation-delay: 2s; }
+.deco-heart.h7 { top: 88%; left: 78%; font-size: 1.6rem; opacity: 0.3; animation-delay: 1.4s; }
+
+@keyframes heartPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.18); }
+}
+
 .hero-grid {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: 1.05fr 0.95fr;
   gap: 56px;
@@ -187,6 +216,13 @@ body:not(.locked) .lock-screen { display: none; }
 .hero-title .amp {
   color: var(--gold);
   font-style: italic;
+}
+.title-heart {
+  color: #e0354b;
+  font-size: 0.5em;
+  vertical-align: super;
+  display: inline-block;
+  animation: heartPulse 3.5s ease-in-out infinite;
 }
 .hero-desc {
   color: #7a5a68;
@@ -337,6 +373,16 @@ body:not(.locked) .lock-screen { display: none; }
   right: -10px;
   font-size: 2rem;
   z-index: 2;
+}
+.hero-photo-heart {
+  position: absolute;
+  top: -16px;
+  right: -12px;
+  font-size: 2.2rem;
+  color: #e0354b;
+  z-index: 2;
+  animation: heartPulse 3.5s ease-in-out infinite;
+  filter: drop-shadow(0 4px 8px rgba(224, 53, 75, 0.35));
 }
 
 @media (max-width: 900px) {
