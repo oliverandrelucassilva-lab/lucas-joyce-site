@@ -18,19 +18,29 @@ const DEFAULT_MEMORIES = [
   {
     id: 'seed-sergipe',
     title: 'Viagem a Sergipe',
-    date: '2026-04-02',
+    date: '2026-04-05',
     category: 'viagem',
     description: 'Nossa primeira viagem juntos! Fomos para Sergipe na Semana Santa.',
-    photo: '',
+    photo: 'images/sergipe-1.jpg',
   },
 ];
 
 function seedMemories() {
-  if (localStorage.getItem(SEED_KEY)) return;
-  if (loadMemories().length === 0) {
-    saveMemories(DEFAULT_MEMORIES);
+  if (!localStorage.getItem(SEED_KEY)) {
+    if (loadMemories().length === 0) {
+      saveMemories(DEFAULT_MEMORIES);
+    }
+    localStorage.setItem(SEED_KEY, 'true');
   }
-  localStorage.setItem(SEED_KEY, 'true');
+
+  // Preenche a foto/data da viagem a Sergipe para quem já tinha o momento sem foto
+  const memories = loadMemories();
+  const sergipe = memories.find(m => m.id === 'seed-sergipe');
+  if (sergipe && !sergipe.photo) {
+    sergipe.photo = 'images/sergipe-1.jpg';
+    sergipe.date = '2026-04-05';
+    saveMemories(memories);
+  }
 }
 
 function loadMemories() {
