@@ -4,7 +4,7 @@ const DATING_DATE_KEY = 'lj-dating-date';
 const UNLOCKED_KEY = 'lj-unlocked';
 const DEFAULT_TOGETHER_DATE = '2025-08-13'; // 13/08/2025
 const DEFAULT_DATING_DATE = '2026-08-02'; // 02/08/2026
-const SITE_PASSWORD_DIGITS = '02082026'; // data de namoro, só números
+const SITE_PASSWORD_DIGITS = '080226'; // 08/02/26, só números
 
 const CATEGORY_LABELS = {
   momento: 'Momento especial',
