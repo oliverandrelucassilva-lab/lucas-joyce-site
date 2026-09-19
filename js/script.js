@@ -1,5 +1,8 @@
 const STORAGE_KEY = 'lj-memories';
 const START_DATE_KEY = 'lj-start-date';
+const UNLOCKED_KEY = 'lj-unlocked';
+const DEFAULT_START_DATE = '2026-02-08'; // 08/02/2026
+const SITE_PASSWORD_DIGITS = '08022026'; // mesma data, só números
 
 const CATEGORY_LABELS = {
   momento: 'Momento especial',
@@ -22,7 +25,7 @@ function saveMemories(memories) {
 }
 
 function loadStartDate() {
-  return localStorage.getItem(START_DATE_KEY) || '';
+  return localStorage.getItem(START_DATE_KEY) || DEFAULT_START_DATE;
 }
 
 function saveStartDate(date) {
@@ -43,10 +46,6 @@ function daysBetween(dateA, dateB) {
 function updateTogetherCounter() {
   const el = document.getElementById('together-counter');
   const startDate = loadStartDate();
-  if (!startDate) {
-    el.textContent = 'defina lá embaixo a data em que vocês começaram a namorar 💛';
-    return;
-  }
   const start = new Date(startDate + 'T00:00:00');
   const now = new Date();
   const days = daysBetween(start, now);
@@ -278,8 +277,41 @@ function setupFloatingHearts() {
   }
 }
 
+/* ---------- Tela de senha ---------- */
+function normalizeDigits(str) {
+  return str.replace(/\D/g, '');
+}
+
+function setupLockScreen() {
+  const isUnlocked = localStorage.getItem(UNLOCKED_KEY) === 'true';
+  if (isUnlocked) {
+    document.body.classList.remove('locked');
+    return;
+  }
+
+  const form = document.getElementById('lock-form');
+  const input = document.getElementById('lock-input');
+  const error = document.getElementById('lock-error');
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const digits = normalizeDigits(input.value);
+
+    if (digits === SITE_PASSWORD_DIGITS) {
+      localStorage.setItem(UNLOCKED_KEY, 'true');
+      document.body.classList.remove('locked');
+      error.hidden = true;
+    } else {
+      error.hidden = false;
+      input.value = '';
+      input.focus();
+    }
+  });
+}
+
 /* ---------- Init ---------- */
 document.addEventListener('DOMContentLoaded', () => {
+  setupLockScreen();
   setupFloatingHearts();
   updateTogetherCounter();
   updateCountdown();

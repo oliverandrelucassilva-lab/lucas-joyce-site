@@ -24,6 +24,79 @@ body {
   overflow-x: hidden;
 }
 
+body.locked {
+  overflow: hidden;
+  height: 100vh;
+}
+
+body.locked #site-content {
+  display: none;
+}
+
+/* LOCK SCREEN */
+.lock-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, var(--rose-900), var(--pink-700));
+  padding: 20px;
+}
+body:not(.locked) .lock-screen { display: none; }
+
+.lock-box {
+  background: var(--cream);
+  border-radius: 20px;
+  padding: 44px 36px;
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+}
+.lock-kicker {
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  font-size: 0.75rem;
+  color: var(--pink-700);
+  margin: 0 0 6px;
+}
+.lock-title {
+  font-family: var(--font-serif);
+  color: var(--rose-900);
+  font-size: 2rem;
+  margin: 0 0 10px;
+}
+.lock-text {
+  color: #7a5a68;
+  margin-bottom: 22px;
+  font-size: 0.95rem;
+}
+.lock-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.lock-form input {
+  text-align: center;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--pink-300);
+  font-family: var(--font-sans);
+}
+.lock-form input:focus {
+  outline: none;
+  border-color: var(--pink-700);
+}
+.lock-error {
+  margin-top: 14px;
+  color: var(--pink-700);
+  font-size: 0.85rem;
+}
+
 .container {
   max-width: 960px;
   margin: 0 auto;

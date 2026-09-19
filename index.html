@@ -8,7 +8,23 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="locked">
+
+<!-- TELA DE SENHA -->
+<div id="lock-screen" class="lock-screen">
+  <div class="lock-box">
+    <p class="lock-kicker">acesso restrito 💛</p>
+    <h1 class="lock-title">Lucas & Joyce</h1>
+    <p class="lock-text">Digite a data especial para entrar</p>
+    <form id="lock-form" class="lock-form">
+      <input type="text" id="lock-input" placeholder="dd/mm/aaaa" autocomplete="off" required>
+      <button type="submit" class="btn-primary">Entrar</button>
+    </form>
+    <p id="lock-error" class="lock-error" hidden>Data incorreta, tente novamente 💌</p>
+  </div>
+</div>
+
+<div id="site-content">
 
 <div id="hearts-bg"></div>
 
@@ -142,6 +158,8 @@
 <div id="lightbox" class="lightbox" hidden>
   <button id="lightbox-close" class="lightbox-close">&times;</button>
   <img id="lightbox-img" src="" alt="Foto ampliada">
+</div>
+
 </div>
 
 <script src="js/script.js"></script>
